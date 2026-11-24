@@ -67,3 +67,16 @@ Revisión pantalla a pantalla. `[x]` = arreglado y comprobado en el emulador.
 - [x] PF1 · No se puede poner foto.
 - [x] PF2 · No se puede cambiar el nombre ni la edad.
 - [x] PF3 · «Su pasaporte / Su QR / Sus accesos» no se pueden tocar.
+
+## Decisiones tomadas mientras no estabas (v0.2)
+
+1. **Modelo de Claude:** `claude-opus-5-5` con esfuerzo bajo, para que responda rápido. Si Claude rechaza una petición, la API la reintenta sola con otro modelo; si tu cuenta no admite esa opción, la app repite la petición sin ella.
+2. **Clave de Claude:** se guarda solo en el móvil y las copias de seguridad en la nube están desactivadas (`allowBackup=false`), para que ni la clave ni los datos del niño acaben en Google Drive.
+3. **Quitados hasta tener servidor:** «Avisos por WhatsApp», y el inicio de sesión y «Enviar mi ubicación» de la vista previa del QR. Sin servidor no podían funcionar de verdad.
+4. **El QR lleva la ficha de emergencia** (tu elección). Las opciones de «Qué se muestra» pasan a ser: nombre/edad/no hablo, sí y no, qué hacer en una crisis, teléfonos, y salud y diagnóstico (esta última desmarcada por defecto).
+5. **Edad como número** («7») en vez de rangos («6-9»): hace falta para la ficha de emergencia.
+6. **«Mi gente» cuenta como hecho** si hay teléfonos de la familia.
+7. **Los ejemplos no tienen teléfonos inventados**, para no llamar a desconocidos. La app avisa de que faltan.
+8. **Datos guardados nuevos:** el formato cambió, así que lo que editaste en la v0.1 no se pasa a la v0.2. La app empieza otra vez con Marco y Lucas.
+9. **APK de prueba:** versión optimizada (`release`) firmada con la clave de desarrollo, para que se instale encima de la v0.1. Para Play Store hará falta una clave propia.
+10. **Release de GitHub:** creé la etiqueta `v0.2` en el repositorio. Para subir el APK hace falta tu sesión de GitHub: el APK y las notas están en la carpeta `release/` (junto al repo).
