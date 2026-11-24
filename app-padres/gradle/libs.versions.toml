@@ -8,6 +8,9 @@ activityCompose = "1.13.0"
 composeBom = "2026.02.01"
 navigation = "2.10.2"
 serializacion = "1.11.0"
+anthropic = "3.3.0"
+zxing = "3.5.3"
+print = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -22,6 +25,9 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializacion" }
+anthropic-java = { module = "com.anthropic:anthropic-java", version.ref = "anthropic" }
+androidx-print = { module = "androidx.print:print", version.ref = "print" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

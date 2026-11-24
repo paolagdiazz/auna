@@ -1,5 +1,11 @@
 package com.auna.padres.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -93,30 +99,60 @@ fun AunaApp(vm: AunaViewModel) {
     val navi = remember(nav) { Navi(nav) }
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
-    val showNav = tabs.any { it.route == route }
 
-    Column(Modifier.fillMaxSize().background(Auna.Bg).statusBarsPadding()) {
-        Box(
-            Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .then(if (showNav) Modifier else Modifier.navigationBarsPadding())
-                .imePadding(),
+    Box(Modifier.fillMaxSize().background(Auna.Bg).statusBarsPadding()) {
+        NavHost(
+            nav,
+            startDestination = Routes.INICIO,
+            modifier = Modifier.fillMaxSize(),
+            // Pestañas: cambio instantáneo. Pantallas de detalle: entran deslizando desde la derecha.
+            enterTransition = {
+                if (isTabSwitch(initialState.destination.route, targetState.destination.route)) EnterTransition.None
+                else slideInHorizontally(tween(NAV_MS, easing = FastOutSlowInEasing)) { it }
+            },
+            exitTransition = {
+                if (isTabSwitch(initialState.destination.route, targetState.destination.route)) ExitTransition.None
+                else slideOutHorizontally(tween(NAV_MS, easing = FastOutSlowInEasing)) { -it / 4 }
+            },
+            popEnterTransition = {
+                if (isTabSwitch(initialState.destination.route, targetState.destination.route)) EnterTransition.None
+                else slideInHorizontally(tween(NAV_MS, easing = FastOutSlowInEasing)) { -it / 4 }
+            },
+            popExitTransition = {
+                if (isTabSwitch(initialState.destination.route, targetState.destination.route)) ExitTransition.None
+                else slideOutHorizontally(tween(NAV_MS, easing = FastOutSlowInEasing)) { it }
+            },
         ) {
-            NavHost(nav, startDestination = Routes.INICIO) {
-                composable(Routes.INICIO) { InicioScreen(vm, navi) }
-                composable(Routes.PASAPORTE) { PasaporteScreen(vm, navi) }
-                composable(Routes.HABLAR) { HablarScreen(vm, navi) }
-                composable(Routes.ACCESOS) { AccesosScreen(vm) }
-                composable(Routes.PERFILES) { PerfilesScreen(vm, navi) }
-                composable(Routes.PROBAR) { ProbarScreen(navi) }
-                composable(Routes.PROPUESTAS) { PropuestasScreen(vm, navi) }
-                composable(Routes.QR) { QrScreen(vm, navi) }
-                composable(Routes.AJUSTES) { AjustesScreen(vm, navi) }
-            }
+            composable(Routes.INICIO) { TabFrame(Routes.INICIO, navi) { InicioScreen(vm, navi) } }
+            composable(Routes.PASAPORTE) { TabFrame(Routes.PASAPORTE, navi) { PasaporteScreen(vm, navi) } }
+            composable(Routes.HABLAR) { TabFrame(Routes.HABLAR, navi) { HablarScreen(vm, navi) } }
+            composable(Routes.ACCESOS) { TabFrame(Routes.ACCESOS, navi) { AccesosScreen(vm, navi) } }
+            composable(Routes.PERFILES) { TabFrame(Routes.PERFILES, navi) { PerfilesScreen(vm, navi) } }
+            composable(Routes.PROBAR) { DetailFrame { ProbarScreen(vm, navi) } }
+            composable(Routes.PROPUESTAS) { DetailFrame { PropuestasScreen(vm, navi) } }
+            composable(Routes.QR) { DetailFrame { QrScreen(vm, navi) } }
+            composable(Routes.AJUSTES) { DetailFrame { AjustesScreen(vm, navi) } }
         }
-        if (showNav) BottomNav(route) { navi.tab(it) }
     }
+}
+
+private const val NAV_MS = 300
+
+private fun isTabSwitch(from: String?, to: String?) = tabs.any { it.route == from } && tabs.any { it.route == to }
+
+/** Pantalla de pestaña: contenido + barra inferior, con fondo opaco para que el deslizamiento se vea limpio. */
+@Composable
+private fun TabFrame(route: String, navi: Navi, content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxSize().background(Auna.Bg)) {
+        Box(Modifier.weight(1f).fillMaxWidth().imePadding()) { content() }
+        BottomNav(route) { navi.tab(it) }
+    }
+}
+
+/** Pantalla de detalle: ocupa toda la pantalla (tapa la barra inferior al entrar). */
+@Composable
+private fun DetailFrame(content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Auna.Bg).navigationBarsPadding().imePadding()) { content() }
 }
 
 @Composable

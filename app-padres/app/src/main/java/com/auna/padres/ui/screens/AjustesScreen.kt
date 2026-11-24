@@ -23,6 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.auna.padres.ui.EditSheet
+import com.auna.padres.ui.Field
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +52,11 @@ import com.auna.padres.ui.theme.Auna
 fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
     val s by vm.state.collectAsState()
     var confirmReset by rememberSaveable { mutableStateOf(false) }
+    val key by vm.claudeKey.collectAsState()
+    var keySheet by rememberSaveable { mutableStateOf(false) }
+    var checking by remember { mutableStateOf(false) }
+    var keyMsg by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     val names = s.kids.map { it.name }
     val namesLabel = when (names.size) {
         0 -> "Aún no hay perfiles"
@@ -84,15 +94,56 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
             Divider()
             LinkRow(Icons.Lock, "Privacidad") { navi.tab(Routes.ACCESOS) }
             Divider()
-            ToggleRow(Icons.Bell, "Avisos por WhatsApp", s.whatsapp) { vm.setWhatsapp(it) }
+            ToggleRow(Icons.Volume, "Leer en voz alta las respuestas", s.readAloud) { vm.setReadAloud(it) }
             Divider()
-            ToggleRow(Icons.Volume, "Leer en voz alta", s.readAloud) { vm.setReadAloud(it) }
+            Row(
+                Modifier.fillMaxWidth().defaultMinSize(minHeight = 64.dp).clickable(role = Role.Button) { keySheet = true },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                AIcon(Icons.Sparkle, Auna.Green, 24.dp, 2.2f)
+                Column(Modifier.weight(1f)) {
+                    Txt("Claude (IA)", 17, 800)
+                    Txt(if (key.isBlank()) "Sin conectar: añade tu clave" else "Conectado", 14, 700, if (key.isBlank()) Auna.Forest else Auna.Green)
+                }
+                AIcon(Icons.ChevronRight, Auna.Muted, 20.dp, 2.5f)
+            }
         }
 
         Spacer(Modifier.weight(1f))
         SecondaryButton(
             "Borrar todos los datos", { confirmReset = true }, Modifier.fillMaxWidth(),
             height = 52.dp, fontSize = 16, radius = 16.dp, color = Auna.Forest, weight = 800,
+        )
+    }
+
+    if (keySheet) {
+        EditSheet(
+            title = "Conectar Claude",
+            fields = listOf(Field("Clave de la API de Anthropic", key, "sk-ant-…", secret = true)),
+            onDismiss = { if (!checking) { keySheet = false; keyMsg = null } },
+            saveLabel = if (checking) "Comprobando…" else "Guardar y comprobar",
+            onSave = { (k) ->
+                if (!checking) {
+                    checking = true; keyMsg = null
+                    scope.launch {
+                        val err = vm.saveClaudeKey(k)
+                        checking = false
+                        if (err == null) { keySheet = false } else keyMsg = err
+                    }
+                }
+            },
+            onDelete = if (key.isNotBlank()) ({ scope.launch { vm.saveClaudeKey("") }; keySheet = false }) else null,
+            deleteLabel = "Quitar la clave",
+            extra = {
+                Txt(
+                    "Aúna usa Claude para ordenar lo que cuentas en «Hablar» y para contestar en «Comprueba las respuestas». " +
+                        "Consigue la clave en console.anthropic.com (API Keys). Se guarda solo en este móvil. " +
+                        "Cuando la usas, se envía a Anthropic el pasaporte del niño activo y lo que acabas de contar o preguntar.",
+                    14, 600, Auna.Muted, lineHeight = 1.4,
+                )
+                keyMsg?.let { Txt(it, 15, 800, Auna.Coral) }
+            },
         )
     }
 

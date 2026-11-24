@@ -2,100 +2,156 @@ package com.auna.padres.data
 
 import kotlinx.serialization.Serializable
 
-/** Total de secciones que cuenta la barra de progreso del pasaporte (8/11). */
+/** Total de apartados que cuenta la barra de progreso del pasaporte. */
 const val PASSPORT_TOTAL = 11
+
+fun newId(prefix: String = "x") = prefix + System.currentTimeMillis().toString(36) + (0..999).random()
+
+/** Un bloque de una sección: título + cosas (p. ej. «Me calma: el agua, la música…»). */
+@Serializable
+data class Group(
+    val id: String,
+    val title: String,
+    val items: List<String> = emptyList(),
+    val warm: Boolean = false,
+)
+
+/** «Mi idioma»: lo que hago → lo que significa → qué hacer. */
+@Serializable
+data class Signal(val id: String, val hago: String, val significa: String, val hacer: String = "")
+
+@Serializable
+data class Section(
+    val id: String,
+    val title: String,
+    val groups: List<Group> = emptyList(),
+    val onlyFamily: Boolean = false,
+    val custom: Boolean = false,
+)
+
+@Serializable
+data class Contact(val id: String, val name: String, val relation: String, val phone: String = "")
+
+@Serializable
+data class Passport(
+    val noHabla: Boolean = false,
+    val highlights: List<String> = emptyList(),
+    val yes: String = "",
+    val no: String = "",
+    val signals: List<Signal> = emptyList(),
+    val sections: List<Section> = Templates.baseSections(),
+    val contacts: List<Contact> = emptyList(),
+) {
+    fun section(id: String) = sections.firstOrNull { it.id == id }
+    fun group(sectionId: String, groupId: String) = section(sectionId)?.groups?.firstOrNull { it.id == groupId }
+
+    /** Los 11 apartados que cuenta la barra de progreso. */
+    fun checklist(): List<Pair<String, Boolean>> {
+        val g = { s: String, gr: String -> group(s, gr)?.items?.isNotEmpty() == true }
+        return listOf(
+            "Quién soy" to g("sobre", "yo"),
+            "Mi gente" to (g("sobre", "gente") || contacts.isNotEmpty()),
+            "Cómo digo sí y no" to (yes.isNotBlank() && no.isNotBlank()),
+            "Mis señales" to signals.isNotEmpty(),
+            "Qué me calma" to g("calma", "calma"),
+            "Qué me altera" to g("calma", "altera"),
+            "Qué me gusta" to g("gusta", "gusta"),
+            "Cuidado al comer" to g("comida", "cuidado"),
+            "Cómo como" to g("comida", "como"),
+            "Salud" to g("salud", "salud"),
+            "Si tengo una crisis" to g("salud", "crisis"),
+        )
+    }
+
+    val done: Int get() = checklist().count { it.second }
+
+    /** Apartados vacíos de una sección base (para el aviso «Faltan: …»). */
+    fun missingIn(sectionId: String): List<String> = when (sectionId) {
+        "idioma" -> buildList {
+            if (yes.isBlank() || no.isBlank()) add("cómo dice sí y no")
+            if (signals.isEmpty()) add("sus señales")
+        }
+        else -> section(sectionId)?.takeIf { !it.custom }?.groups
+            ?.filter { it.items.isEmpty() && !(sectionId == "sobre" && it.id == "gente" && contacts.isNotEmpty()) }
+            ?.map { it.title.lowercase() } ?: emptyList()
+    }
+
+    fun isEmpty(sectionId: String): Boolean = when (sectionId) {
+        "idioma" -> yes.isBlank() && no.isBlank() && signals.isEmpty()
+        else -> section(sectionId)?.groups?.all { it.items.isEmpty() } ?: true
+    }
+}
+
+/** Personas con acceso al pasaporte. `until` = fecha de caducidad (epoch ms) o null si es para siempre. */
+@Serializable
+data class Access(
+    val id: String,
+    val name: String,
+    val role: String,
+    val permission: String = PERM_VIEW,
+    val until: Long? = null,
+    val members: Int? = null,
+)
+
+const val PERM_EDIT = "editar"
+const val PERM_VIEW = "ver"
+const val PERM_PROPOSE = "proponer"
+
+@Serializable
+data class Proposal(
+    val id: String,
+    val kidId: String,
+    val name: String,
+    val role: String,
+    val whenLabel: String,
+    val said: String,
+    val hago: String,
+    val significa: String,
+    val photo: String? = null,
+    /** null = sin revisar · "yes" = añadida · "no" = descartada */
+    val status: String? = null,
+)
+
+@Serializable
+data class AccessRequest(
+    val id: String,
+    val kidId: String,
+    val name: String,
+    val role: String,
+    val place: String,
+)
 
 @Serializable
 data class Kid(
     val id: String,
     val name: String,
     val age: String,
-    val done: Int,
-    /** Clave de la foto incluida en la app (ver `photoRes`). Null = foto pendiente. */
+    /** Foto: clave de una foto incluida («marco») o ruta de un archivo en el móvil. */
     val photo: String? = null,
+    val passport: Passport = Passport(),
+    val access: List<Access> = emptyList(),
+    val qrShow: Map<String, Boolean> = Templates.qrDefaults(),
 )
-
-@Serializable
-data class CustomSection(val id: String, val kidId: String, val title: String)
 
 /**
  * Todo lo que la familia cambia en la app. Se guarda en el móvil (JSON) y se
- * recupera al abrirla. Los valores por defecto son los datos de ejemplo del diseño.
+ * recupera al abrirla. Los valores por defecto son los datos de ejemplo.
  */
 @Serializable
 data class AppState(
-    val kids: List<Kid> = Sample.kids,
-    val activeKidId: String? = Sample.kids.first().id,
-    val customSections: List<CustomSection> = emptyList(),
-    /** Solicitud de acceso de Pedro: pending · day · custom · no */
-    val request: String = "pending",
-    val requestDuration: String = "1 mes",
-    val requestRole: String = "Ver",
-    val removedAccess: Set<String> = emptySet(),
-    /** Propuestas revisadas: id → "yes" | "no" */
-    val proposals: Map<String, String> = emptyMap(),
-    val whatsapp: Boolean = true,
+    val kids: List<Kid> = Sample.kids(),
+    val activeKidId: String? = Sample.MARCO,
+    val requests: List<AccessRequest> = Sample.requests(),
+    val proposals: List<Proposal> = Sample.proposals(),
     val readAloud: Boolean = false,
-    val qrShow: Map<String, Boolean> = Sample.qrOptions.associate { it.key to it.defaultOn },
 ) {
     val activeKid: Kid? get() = kids.firstOrNull { it.id == activeKidId } ?: kids.firstOrNull()
 
-    val pendingProposals: List<Proposal> get() = Sample.proposals.filter { it.id !in proposals }
-
-    val requestPending: Boolean get() = request == "pending"
-
-    fun sectionsFor(kidId: String) = customSections.filter { it.kidId == kidId }
-
-    /** Señales de «Mi idioma»: las del ejemplo + las propuestas aceptadas. */
-    fun signalsFor(kidId: String): List<Signal> {
-        if (kidId != Sample.MARCO) return emptyList()
-        val accepted = Sample.proposals.filter { proposals[it.id] == "yes" }.map { Signal(it.hago, it.significa, "") }
-        return Sample.signals + accepted
-    }
-
-    fun accessPeople(): List<AccessPerson> {
-        val base = Sample.access.toMutableList()
-        when (request) {
-            "day" -> base.add(0, AccessPerson("pedro", "P", "Pedro · profe", "Solo hoy", warn = true))
-            "custom" -> base.add(
-                0,
-                AccessPerson(
-                    "pedro", "P", "Pedro · profe",
-                    requestDuration + if (requestRole == "Ver") "" else " · puede proponer",
-                    warn = true,
-                ),
-            )
-        }
-        return base.filter { it.id !in removedAccess }
-    }
+    fun pendingProposals(kidId: String?) = proposals.filter { it.kidId == kidId && it.status == null }
+    fun reviewedProposals(kidId: String?) = proposals.filter { it.kidId == kidId && it.status != null }
+    fun requestsFor(kidId: String?) = requests.filter { it.kidId == kidId }
 }
 
-data class Signal(val hago: String, val significa: String, val hacer: String)
-
-data class Group(val title: String, val items: List<String>, val warm: Boolean = false)
-
-data class PassportSection(
-    val title: String,
-    val groups: List<Group> = emptyList(),
-    val onlyFamily: Boolean = false,
-    val pending: String? = null,
-)
-
-data class AccessPerson(val id: String, val initial: String, val name: String, val meta: String, val warn: Boolean = false)
-
-data class Proposal(
-    val id: String,
-    val initial: String,
-    val photo: String?,
-    val name: String,
-    val role: String,
-    val `when`: String,
-    val said: String,
-    val section: String,
-    val hago: String,
-    val significa: String,
-)
+data class QA(val q: String, val a: String, val src: String)
 
 data class QrOption(val key: String, val label: String, val defaultOn: Boolean)
-
-data class QA(val q: String, val a: String, val src: String)

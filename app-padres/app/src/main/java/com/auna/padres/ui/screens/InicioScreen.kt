@@ -50,7 +50,7 @@ import com.auna.padres.ui.theme.Auna
 fun InicioScreen(vm: AunaViewModel, navi: Navi) {
     val s by vm.state.collectAsState()
     val kid = s.activeKid
-    val pending = s.pendingProposals.size
+    val pending = s.pendingProposals(kid?.id).size
 
     Column(
         Modifier
@@ -114,8 +114,8 @@ fun InicioScreen(vm: AunaViewModel, navi: Navi) {
                     AIcon(Icons.ChevronRight, Auna.Green, 26.dp, 2.5f)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ProgressBar(kid.done / PASSPORT_TOTAL.toFloat(), Modifier.weight(1f))
-                    Txt("${kid.done}/$PASSPORT_TOTAL", 15, 900)
+                    ProgressBar(kid.passport.done / PASSPORT_TOTAL.toFloat(), Modifier.weight(1f))
+                    Txt("${kid.passport.done}/$PASSPORT_TOTAL", 15, 900)
                 }
             }
         }
@@ -162,7 +162,7 @@ fun InicioScreen(vm: AunaViewModel, navi: Navi) {
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Tile("Accesos", Icons.People, Modifier.weight(1f), badge = if (s.requestPending) "1 nueva" else null) {
+            Tile("Accesos", Icons.People, Modifier.weight(1f), badge = s.requestsFor(kid?.id).size.takeIf { it > 0 }?.let { if (it == 1) "1 nueva" else "$it nuevas" }) {
                 navi.tab(Routes.ACCESOS)
             }
             Tile("Mi tarjeta QR", Icons.Scan, Modifier.weight(1f)) { navi.open(Routes.QR) }

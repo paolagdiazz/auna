@@ -1,6 +1,12 @@
 package com.auna.padres.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +17,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,27 +35,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.auna.padres.AunaViewModel
+import com.auna.padres.Speaker
+import com.auna.padres.TalkContext
+import com.auna.padres.data.Contact
 import com.auna.padres.data.Group
 import com.auna.padres.data.Kid
 import com.auna.padres.data.PASSPORT_TOTAL
-import com.auna.padres.data.PassportSection
-import com.auna.padres.data.Sample
+import com.auna.padres.data.Section
+import com.auna.padres.data.Signal
+import com.auna.padres.data.Templates
+import com.auna.padres.data.newId
 import com.auna.padres.ui.AButton
 import com.auna.padres.ui.AIcon
 import com.auna.padres.ui.AunaIcon
 import com.auna.padres.ui.CircleIconButton
+import com.auna.padres.ui.EditSheet
+import com.auna.padres.ui.Field
 import com.auna.padres.ui.Girasol
 import com.auna.padres.ui.Gutter
 import com.auna.padres.ui.Icons
+import com.auna.padres.ui.KidEditor
 import com.auna.padres.ui.KidPhoto
 import com.auna.padres.ui.Navi
 import com.auna.padres.ui.NoKid
@@ -68,15 +85,40 @@ private val sectionIcons = mapOf(
     "salud" to Icons.Health,
 )
 
-private val highlightIcons = mapOf("utensils" to Icons.Utensils, "mute" to Icons.Mute, "smile" to Icons.Smile)
+/** Icono de «Lo más importante» según de qué hable la frase. */
+internal fun highlightIcon(text: String): AunaIcon {
+    val t = text.lowercase()
+    return when {
+        listOf("com", "trit", "beb", "alerg", "atragant").any { it in t } -> Icons.Utensils
+        listOf("ruido", "grit", "oído", "sonido").any { it in t } -> Icons.Mute
+        listOf("ríe", "rio", "río", "sonr", "content", "llor").any { it in t } -> Icons.Smile
+        listOf("epilep", "crisis", "medic", "salud").any { it in t } -> Icons.Health
+        else -> Icons.Star
+    }
+}
+
+/** Lo que se está editando ahora mismo en la hoja inferior. */
+private sealed class Ed {
+    data class Item(val sectionId: String, val groupId: String, val index: Int?) : Ed()
+    data object YesNo : Ed()
+    data class Sig(val id: String?) : Ed()
+    data class Highlight(val index: Int?) : Ed()
+    data class Person(val id: String?) : Ed()
+    data object NewSection : Ed()
+    data class RenameSection(val sectionId: String) : Ed()
+    data object Profile : Ed()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasaporteScreen(vm: AunaViewModel, navi: Navi) {
     val s by vm.state.collectAsState()
+    val speaking by vm.speaker.speaking.collectAsState()
     val kid = s.activeKid
-    var open by rememberSaveable { mutableStateOf<String?>(null) }
+    // Al cambiar de niño, el pasaporte vuelve a la cuadrícula.
+    var open by rememberSaveable(kid?.id) { mutableStateOf<String?>(null) }
     var sheet by rememberSaveable { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<Ed?>(null) }
 
     if (kid == null) {
         Column(Modifier.fillMaxSize().padding(Gutter), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -86,38 +128,52 @@ fun PasaporteScreen(vm: AunaViewModel, navi: Navi) {
         return
     }
 
-    val isMarco = kid.id == Sample.MARCO
-    val custom = s.sectionsFor(kid.id)
-
+    // Si se borra la sección abierta, volvemos a la cuadrícula.
+    if (open != null && kid.passport.section(open!!) == null) open = null
     BackHandler(enabled = open != null) { open = null }
 
-    val current = open
-    if (current == null) {
-        PassportGrid(
-            kid = kid,
-            isMarco = isMarco,
-            customTiles = custom.map { it.id to it.title },
-            onOpen = { open = it },
-            onAdd = { sheet = true },
-        )
-    } else {
-        val section: PassportSection = when {
-            isMarco && Sample.marcoSections.containsKey(current) -> Sample.marcoSections.getValue(current)
-            Sample.sectionTitles.containsKey(current) -> PassportSection(Sample.sectionTitles.getValue(current))
-            else -> PassportSection(custom.firstOrNull { it.id == current }?.title ?: "")
+    AnimatedContent(
+        targetState = open,
+        transitionSpec = {
+            val forward = targetState != null
+            val spec = tween<androidx.compose.ui.unit.IntOffset>(280, easing = FastOutSlowInEasing)
+            (slideInHorizontally(spec) { if (forward) it else -it / 4 }) togetherWith
+                (slideOutHorizontally(spec) { if (forward) -it / 4 else it })
+        },
+        label = "pasaporte",
+    ) { current ->
+        Box(Modifier.fillMaxSize().background(Auna.Bg)) {
+            if (current == null) {
+                PassportGrid(
+                    kid = kid,
+                    speaking = speaking == "pasaporte",
+                    onListen = { vm.speaker.toggle(Speaker.passportText(kid), "pasaporte") },
+                    onOpen = { open = it },
+                    onAdd = { sheet = true },
+                    onEdit = { editing = it },
+                )
+            } else {
+                val section = kid.passport.section(current)
+                if (section != null) {
+                    SectionDetail(
+                        kid = kid,
+                        section = section,
+                        speaking = speaking == "sec-$current",
+                        onListen = { vm.speaker.toggle(Speaker.sectionText(kid, current), "sec-$current") },
+                        onBack = { open = null },
+                        onTalk = {
+                            vm.talkContext.value = TalkContext(section.id, null)
+                            navi.tab(Routes.HABLAR)
+                        },
+                        onEdit = { editing = it },
+                    )
+                }
+            }
         }
-        val signals = if (current == "idioma") s.signalsFor(kid.id) else emptyList()
-        SectionDetail(
-            section = section,
-            isIdioma = current == "idioma" && isMarco,
-            signals = signals,
-            onBack = { open = null },
-            onTalk = { navi.tab(Routes.HABLAR) },
-        )
     }
 
     if (sheet) {
-        val used = custom.map { it.title }
+        val used = kid.passport.sections.map { it.title }
         ModalBottomSheet(
             onDismissRequest = { sheet = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -134,11 +190,11 @@ fun PasaporteScreen(vm: AunaViewModel, navi: Navi) {
                     Txt("Añadir sección", 22, 900, modifier = Modifier.weight(1f))
                     CircleIconButton(Icons.Close, "Cerrar", { sheet = false }, size = 44.dp, iconSize = 20.dp)
                 }
-                Sample.extraSectionOptions.filter { it !in used }.chunked(2).forEach { row ->
+                Templates.extraSectionOptions.filter { it !in used }.chunked(2).forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         row.forEach { title ->
                             AButton(
-                                { vm.addSection(kid.id, title); sheet = false },
+                                { open = vm.addSection(kid.id, title); sheet = false },
                                 Modifier.weight(1f),
                                 bg = Auna.White, border = Auna.Border, minHeight = 64.dp,
                             ) { Txt(title, 17, 800) }
@@ -147,78 +203,194 @@ fun PasaporteScreen(vm: AunaViewModel, navi: Navi) {
                     }
                 }
                 AButton(
-                    { vm.addSection(kid.id, "Mi sección"); sheet = false },
+                    { sheet = false; editing = Ed.NewSection },
                     Modifier.fillMaxWidth(),
                     bg = Auna.Bg, border = Auna.Balance, dashed = true,
                 ) { Txt("Otra, con mi nombre", 17, 900, Auna.Green) }
             }
         }
     }
+
+    editing?.let { ed -> Editor(vm, kid, ed, onDone = { editing = null }, onOpenSection = { open = it }) }
+}
+
+@Composable
+private fun Editor(vm: AunaViewModel, kid: Kid, ed: Ed, onDone: () -> Unit, onOpenSection: (String) -> Unit) {
+    val p = kid.passport
+    when (ed) {
+        is Ed.Item -> {
+            val g = p.group(ed.sectionId, ed.groupId) ?: return onDone()
+            val old = ed.index?.let { g.items.getOrNull(it) }
+            EditSheet(
+                title = if (old == null) "Añadir a «${g.title}»" else g.title,
+                fields = listOf(Field("Texto", old ?: "", "Escribe aquí")),
+                onDismiss = onDone,
+                onSave = { (t) ->
+                    if (ed.index == null) vm.addItem(kid.id, ed.sectionId, ed.groupId, t) else vm.editItem(kid.id, ed.sectionId, ed.groupId, ed.index, t)
+                    onDone()
+                },
+                onDelete = ed.index?.let { i -> { vm.removeItem(kid.id, ed.sectionId, ed.groupId, i); onDone() } },
+            )
+        }
+        Ed.YesNo -> EditSheet(
+            title = "Cómo dice sí y no",
+            fields = listOf(Field("Para decir «sí»", p.yes, "Ej.: Sonrío y toco tu mano"), Field("Para decir «no»", p.no, "Ej.: Giro la cabeza")),
+            onDismiss = onDone,
+            onSave = { (y, n) -> vm.setYesNo(kid.id, y, n); onDone() },
+        )
+        is Ed.Sig -> {
+            val old = ed.id?.let { id -> p.signals.firstOrNull { it.id == id } }
+            EditSheet(
+                title = if (old == null) "Nueva señal" else "Señal",
+                fields = listOf(
+                    Field("Lo que hace", old?.hago ?: "", "Ej.: Se tira de la oreja y llora"),
+                    Field("Qué significa", old?.significa ?: "", "Ej.: Le duele algo"),
+                    Field("Qué hacer (opcional)", old?.hacer ?: "", "Ej.: Enséñale los pictos del cuerpo", multiline = true),
+                ),
+                onDismiss = onDone,
+                onSave = { (h, sg, hc) ->
+                    if (h.isNotBlank() && sg.isNotBlank()) vm.saveSignal(kid.id, Signal(old?.id ?: newId("sg"), h.trim(), sg.trim(), hc.trim()))
+                    onDone()
+                },
+                onDelete = old?.let { o -> { vm.removeSignal(kid.id, o.id); onDone() } },
+            )
+        }
+        is Ed.Highlight -> {
+            val old = ed.index?.let { p.highlights.getOrNull(it) }
+            EditSheet(
+                title = "Lo más importante",
+                fields = listOf(Field("Texto", old ?: "", "Ej.: Como triturado")),
+                onDismiss = onDone,
+                onSave = { (t) -> vm.saveHighlight(kid.id, ed.index, t); onDone() },
+                onDelete = ed.index?.let { i -> { vm.saveHighlight(kid.id, i, ""); onDone() } },
+            )
+        }
+        is Ed.Person -> {
+            val old = ed.id?.let { id -> p.contacts.firstOrNull { it.id == id } }
+            EditSheet(
+                title = if (old == null) "Nuevo teléfono" else "Teléfono",
+                fields = listOf(
+                    Field("Quién es", old?.relation ?: "", "Ej.: Mamá"),
+                    Field("Nombre", old?.name ?: "", "Ej.: Ana"),
+                    Field("Teléfono", old?.phone ?: "", "Ej.: 600 123 456", keyboard = KeyboardType.Phone),
+                ),
+                onDismiss = onDone,
+                onSave = { (rel, name, phone) ->
+                    if (name.isNotBlank() || rel.isNotBlank()) vm.saveContact(kid.id, Contact(old?.id ?: newId("c"), name.trim(), rel.trim(), phone.trim()))
+                    onDone()
+                },
+                onDelete = old?.let { o -> { vm.removeContact(kid.id, o.id); onDone() } },
+            )
+        }
+        Ed.NewSection -> EditSheet(
+            title = "Nueva sección",
+            fields = listOf(Field("Nombre de la sección", "", "Ej.: Piscina")),
+            onDismiss = onDone,
+            saveLabel = "Crear sección",
+            onSave = { (t) -> if (t.isNotBlank()) onOpenSection(vm.addSection(kid.id, t)); onDone() },
+        )
+        is Ed.RenameSection -> {
+            val sec = p.section(ed.sectionId) ?: return onDone()
+            EditSheet(
+                title = "Sección",
+                fields = listOf(Field("Nombre", sec.title)),
+                onDismiss = onDone,
+                onSave = { (t) -> vm.renameSection(kid.id, sec.id, t); onDone() },
+                onDelete = { vm.deleteSection(kid.id, sec.id); onDone() },
+                deleteLabel = "Borrar la sección",
+            )
+        }
+        Ed.Profile -> KidEditor(vm, kid, onDismiss = onDone)
+    }
 }
 
 @Composable
 private fun PassportGrid(
     kid: Kid,
-    isMarco: Boolean,
-    customTiles: List<Pair<String, String>>,
+    speaking: Boolean,
+    onListen: () -> Unit,
     onOpen: (String) -> Unit,
     onAdd: () -> Unit,
+    onEdit: (Ed) -> Unit,
 ) {
+    val p = kid.passport
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(Gutter),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Txt("Pasaporte", 26, 900, modifier = Modifier.weight(1f))
-            CircleIconButton(Icons.VolumeFull, "Escuchar el pasaporte", {}, iconColor = Auna.Green, stroke = 2.2f)
+            ListenButton(speaking, "Escuchar el pasaporte", Auna.White, onListen)
         }
 
         Row(
-            Modifier.fillMaxWidth().card(Auna.GreyCard, 26.dp).padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .card(Auna.GreyCard, 26.dp)
+                .clickable(role = Role.Button, onClickLabel = "Editar perfil") { onEdit(Ed.Profile) }
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             KidPhoto(kid, 100.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Txt(kid.name, 28, 900, lineHeight = 1.1)
-                Txt(kid.age, 16, 700, Auna.Muted)
+                if (kid.age.isNotBlank()) Txt(kid.age, 16, 700, Auna.Muted)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (isMarco) Tag("No hablo", Auna.White, Auna.Ink)
-                    Tag("${kid.done}/$PASSPORT_TOTAL", Auna.White, Auna.Ink)
+                    if (p.noHabla) Tag("No hablo", Auna.White, Auna.Ink)
+                    Tag("${p.done}/$PASSPORT_TOTAL", Auna.White, Auna.Ink)
                 }
             }
+            AIcon(Icons.Pencil, Auna.Muted, 20.dp, 2.2f)
         }
 
-        if (isMarco) {
-            Column(
-                Modifier.fillMaxWidth().card(Auna.MintStrong, 22.dp).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+        Column(
+            Modifier.fillMaxWidth().card(Auna.MintStrong, 22.dp).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AIcon(Icons.Star, Auna.Dot, 20.dp)
+                Txt("Lo más importante", 16, 900, Auna.DeepGreen)
+            }
+            p.highlights.forEachIndexed { i, text ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 40.dp)
+                        .clickable(role = Role.Button, onClickLabel = "Editar") { onEdit(Ed.Highlight(i)) },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    AIcon(highlightIcon(text), Auna.DeepGreen, 22.dp, 2f)
+                    Txt(text, 17, 800, modifier = Modifier.weight(1f))
+                }
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 40.dp)
+                    .clickable(role = Role.Button) { onEdit(Ed.Highlight(null)) },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AIcon(Icons.Star, Auna.Dot, 20.dp)
-                    Txt("Lo más importante", 16, 900, Auna.DeepGreen)
-                }
-                Sample.highlights.forEach { (icon, text) ->
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        AIcon(highlightIcons.getValue(icon), Auna.DeepGreen, 22.dp, 2f)
-                        Txt(text, 17, 800)
-                    }
-                }
+                AIcon(Icons.Plus, Auna.Green, 22.dp, 2.4f)
+                Txt(if (p.highlights.isEmpty()) "Añade lo más importante" else "Añadir", 16, 800, Auna.Green)
             }
         }
 
-        val tiles = Sample.baseSections.map { Triple(it, Sample.sectionTitles.getValue(it), sectionIcons.getValue(it)) } +
-            customTiles.map { Triple(it.first, it.second, Icons.Sparkle) }
+        val tiles = p.sections.map { sec ->
+            Triple(sec, sectionIcons[sec.id] ?: Icons.Sparkle, !sec.custom && p.missingIn(sec.id).isNotEmpty())
+        }
         tiles.chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { (id, title, icon) ->
+                row.forEach { (sec, icon, missing) ->
                     SectionTile(
-                        title = title,
+                        title = sec.title,
                         icon = icon,
-                        highlighted = id == "idioma",
-                        badge = if (id == "salud" && isMarco) "Falta" else null,
+                        highlighted = sec.id == "idioma",
+                        badge = if (missing) "Falta" else null,
                         modifier = Modifier.weight(1f),
-                    ) { onOpen(id) }
+                    ) { onOpen(sec.id) }
                 }
                 repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
             }
@@ -226,6 +398,18 @@ private fun PassportGrid(
 
         PrimaryButton("Añadir sección", onAdd, Modifier.fillMaxWidth(), height = 64.dp, icon = Icons.Plus)
     }
+}
+
+@Composable
+private fun ListenButton(speaking: Boolean, label: String, bg: androidx.compose.ui.graphics.Color, onClick: () -> Unit) {
+    CircleIconButton(
+        if (speaking) Icons.Close else Icons.VolumeFull,
+        if (speaking) "Parar la lectura" else label,
+        onClick,
+        bg = if (speaking) Auna.Green else bg,
+        iconColor = if (speaking) Auna.White else Auna.Green,
+        stroke = 2.2f,
+    )
 }
 
 @Composable
@@ -256,15 +440,18 @@ private fun SectionTile(title: String, icon: AunaIcon, highlighted: Boolean, bad
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SectionDetail(
-    section: PassportSection,
-    isIdioma: Boolean,
-    signals: List<com.auna.padres.data.Signal>,
+    kid: Kid,
+    section: Section,
+    speaking: Boolean,
+    onListen: () -> Unit,
     onBack: () -> Unit,
     onTalk: () -> Unit,
+    onEdit: (Ed) -> Unit,
 ) {
+    val p = kid.passport
+    val isIdioma = section.id == "idioma"
     Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.padding(start = Gutter, end = Gutter, top = 20.dp, bottom = 12.dp),
@@ -273,7 +460,8 @@ private fun SectionDetail(
         ) {
             CircleIconButton(Icons.ChevronLeft, "Volver", onBack)
             Txt(section.title, 24, 900, modifier = Modifier.weight(1f))
-            CircleIconButton(Icons.VolumeFull, "Escuchar", {}, bg = Auna.Mint, iconColor = Auna.Green, stroke = 2.2f)
+            if (section.custom) CircleIconButton(Icons.Pencil, "Cambiar nombre o borrar", { onEdit(Ed.RenameSection(section.id)) }, iconColor = Auna.Green, stroke = 2.2f)
+            ListenButton(speaking, "Escuchar", Auna.Mint, onListen)
         }
 
         Column(
@@ -294,22 +482,18 @@ private fun SectionDetail(
                 }
             }
 
-            val empty = !isIdioma && section.groups.isEmpty()
-
             if (isIdioma) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Column(Modifier.weight(1f).card(Auna.Mint, 18.dp).padding(horizontal = 14.dp, vertical = 12.dp)) {
-                        Txt("Sí", 20, 900, Auna.Green)
-                        Txt("Sonrío y toco tu mano", 15, 600)
-                    }
-                    Column(Modifier.weight(1f).card(Auna.CoralBg, 18.dp).padding(horizontal = 14.dp, vertical = 12.dp)) {
-                        Txt("No", 20, 900, Auna.Coral)
-                        Txt("Giro la cabeza", 15, 600, Auna.Coral)
-                    }
+                    YesNoCard("Sí", p.yes, Auna.Mint, Auna.Green, Auna.Ink, Modifier.weight(1f)) { onEdit(Ed.YesNo) }
+                    YesNoCard("No", p.no, Auna.CoralBg, Auna.Coral, Auna.Coral, Modifier.weight(1f)) { onEdit(Ed.YesNo) }
                 }
-                signals.forEach { sg ->
+                p.signals.forEach { sg ->
                     Column(
-                        Modifier.fillMaxWidth().card(Auna.White, 18.dp).padding(horizontal = 16.dp, vertical = 14.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .card(Auna.White, 18.dp)
+                            .clickable(role = Role.Button, onClickLabel = "Editar") { onEdit(Ed.Sig(sg.id)) }
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Txt(sg.hago, 17, 800)
@@ -322,29 +506,59 @@ private fun SectionDetail(
                         }
                     }
                 }
+                AddRow("Añadir señal") { onEdit(Ed.Sig(null)) }
             }
 
-            section.groups.forEach { g -> GroupCard(g) }
+            section.groups.forEach { g -> GroupCard(g, section.custom && section.groups.size == 1) { idx -> onEdit(Ed.Item(section.id, g.id, idx)) } }
 
-            if (empty) {
+            if (section.id == "sobre") {
                 Column(
-                    Modifier.fillMaxWidth().card(Auna.White, 22.dp).padding(horizontal = 16.dp, vertical = 28.dp),
+                    Modifier.fillMaxWidth().card(Auna.White, 20.dp).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Txt("Teléfonos de la familia", 14, 800, Auna.Muted, upper = true)
+                    p.contacts.forEach { c ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .defaultMinSize(minHeight = 52.dp)
+                                .clickable(role = Role.Button, onClickLabel = "Editar") { onEdit(Ed.Person(c.id)) },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Box(Modifier.size(36.dp).clip(CircleShape).background(Auna.Mint), contentAlignment = Alignment.Center) {
+                                Txt((c.name.ifBlank { c.relation }).take(1).uppercase(), 15, 900, Auna.Green)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Txt(listOf(c.relation, c.name).filter { it.isNotBlank() }.joinToString(" · "), 16, 800)
+                                Txt(c.phone.ifBlank { "Falta el teléfono" }, 14, 700, if (c.phone.isBlank()) Auna.Forest else Auna.Muted)
+                            }
+                        }
+                    }
+                    AddRow("Añadir teléfono", inCard = true) { onEdit(Ed.Person(null)) }
+                }
+            }
+
+            if (p.isEmpty(section.id) && !isIdioma && section.groups.size <= 1 && section.custom) {
+                Column(
+                    Modifier.fillMaxWidth().card(Auna.White, 22.dp).padding(horizontal = 16.dp, vertical = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Girasol(72.dp)
+                    Girasol(64.dp)
                     Txt("Aún está vacía", 19, 900)
                 }
             }
 
-            if (section.pending != null) {
+            val missing = if (section.custom) emptyList() else p.missingIn(section.id)
+            if (missing.isNotEmpty()) {
                 Row(
                     Modifier.fillMaxWidth().card(Auna.MintStrong, 20.dp).padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Box(Modifier.size(12.dp).clip(CircleShape).background(Auna.Dot))
-                    Txt(section.pending, 16, 800, Auna.DeepGreen, Modifier.weight(1f))
+                    Txt("Falta: ${missing.joinToString(", ")}", 16, 800, Auna.DeepGreen, Modifier.weight(1f))
                 }
             }
 
@@ -360,22 +574,75 @@ private fun SectionDetail(
     }
 }
 
+@Composable
+private fun YesNoCard(
+    label: String,
+    text: String,
+    bg: androidx.compose.ui.graphics.Color,
+    titleColor: androidx.compose.ui.graphics.Color,
+    textColor: androidx.compose.ui.graphics.Color,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier
+            .card(bg, 18.dp)
+            .clickable(role = Role.Button, onClickLabel = "Editar") { onClick() }
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Txt(label, 20, 900, titleColor)
+        Txt(text.ifBlank { "Toca para añadir" }, 15, 600, textColor)
+    }
+}
+
+@Composable
+private fun AddRow(label: String, inCard: Boolean = false, onClick: () -> Unit) {
+    if (inCard) {
+        Row(
+            Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp).clickable(role = Role.Button, onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            AIcon(Icons.Plus, Auna.Green, 22.dp, 2.4f)
+            Txt(label, 16, 800, Auna.Green)
+        }
+    } else {
+        AButton(onClick, Modifier.fillMaxWidth(), bg = Auna.Bg, border = Auna.Border, radius = 18.dp, minHeight = 52.dp) {
+            AIcon(Icons.Plus, Auna.Green, 20.dp, 2.4f)
+            Txt(label, 16, 800, Auna.Green)
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GroupCard(g: Group) {
+private fun GroupCard(g: Group, hideTitle: Boolean, onItem: (Int?) -> Unit) {
     Column(
         Modifier.fillMaxWidth().card(Auna.White, 20.dp).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Txt(g.title, 14, 800, Auna.Muted, upper = true)
+        if (!hideTitle) Txt(g.title, 14, 800, Auna.Muted, upper = true)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            g.items.forEach { item ->
-                Tag(
-                    item,
-                    if (g.warm) Auna.MintStrong else Auna.Mint,
-                    if (g.warm) Auna.DeepGreen else Auna.Green,
-                    fontSize = 16, weight = 700, radius = 14.dp, hPad = 14.dp, vPad = 8.dp,
-                )
+            g.items.forEachIndexed { i, item ->
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (g.warm) Auna.MintStrong else Auna.Mint)
+                        .clickable(role = Role.Button, onClickLabel = "Editar") { onItem(i) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                ) { Txt(item, 16, 700, if (g.warm) Auna.DeepGreen else Auna.Green) }
+            }
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(2.dp, Auna.Border, RoundedCornerShape(14.dp))
+                    .clickable(role = Role.Button) { onItem(null) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                AIcon(Icons.Plus, Auna.Green, 18.dp, 2.4f)
+                Txt("Añadir", 15, 800, Auna.Green)
             }
         }
     }

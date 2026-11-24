@@ -15,10 +15,10 @@ import java.io.File
 
 /**
  * Guarda el estado de la app en un JSON dentro del almacenamiento privado del
- * móvil. Nada sale del dispositivo.
+ * móvil. Este archivo no se sube a ningún sitio.
  */
 class Store(context: Context) {
-    private val file = File(context.filesDir, "auna_estado.json")
+    private val file = File(context.filesDir, "auna_estado_v2.json")
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

@@ -31,6 +31,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -231,6 +232,38 @@ fun Initial(letter: String, size: Dp = 44.dp, bg: Color = Auna.Mint, fg: Color =
     }
 }
 
+/** Carga una foto guardada en el móvil, reducida a un tamaño razonable, fuera del hilo principal. */
+@Composable
+fun rememberFileBitmap(path: String): androidx.compose.ui.graphics.ImageBitmap? {
+    val state = androidx.compose.runtime.produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, path) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeFile(path, bounds)
+                var sample = 1
+                while (bounds.outWidth / (sample * 2) >= 512 && bounds.outHeight / (sample * 2) >= 512) sample *= 2
+                val bmp = android.graphics.BitmapFactory.decodeFile(path, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })
+                rotateFromExif(path, bmp).asImageBitmap()
+            }.getOrNull()
+        }
+    }
+    return state.value
+}
+
+private fun rotateFromExif(path: String, bmp: android.graphics.Bitmap): android.graphics.Bitmap {
+    val deg = runCatching {
+        when (android.media.ExifInterface(path).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, 1)) {
+            android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+            android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+            android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+            else -> 0f
+        }
+    }.getOrDefault(0f)
+    if (deg == 0f) return bmp
+    val m = android.graphics.Matrix().apply { postRotate(deg) }
+    return android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, m, true)
+}
+
 @DrawableRes
 fun photoRes(key: String?): Int? = when (key) {
     "marco" -> R.drawable.foto_marco
@@ -252,16 +285,15 @@ fun Photo(
     ring: Color? = Auna.White,
 ) {
     val res = photoRes(key)
+    val fileBitmap = if (res == null && key != null && key.startsWith("/")) rememberFileBitmap(key) else null
+    val photoModifier = modifier
+        .size(size)
+        .clip(CircleShape)
+        .then(if (ring != null) Modifier.border(3.dp, ring, CircleShape) else Modifier)
     if (res != null) {
-        Image(
-            painter = painterResource(res),
-            contentDescription = "Foto de $name",
-            contentScale = ContentScale.Crop,
-            modifier = modifier
-                .size(size)
-                .clip(CircleShape)
-                .then(if (ring != null) Modifier.border(3.dp, ring, CircleShape) else Modifier),
-        )
+        Image(painterResource(res), "Foto de $name", photoModifier, contentScale = ContentScale.Crop)
+    } else if (fileBitmap != null) {
+        Image(fileBitmap, "Foto de $name", photoModifier, contentScale = ContentScale.Crop)
     } else {
         Column(
             modifier
@@ -335,6 +367,7 @@ fun AField(
     letterSpacing: TextUnit = TextUnit.Unspecified,
     contentAlignment: Alignment = Alignment.CenterStart,
     padding: Dp = 14.dp,
+    secret: Boolean = false,
 ) {
     val style = TextStyle(fontFamily = Nunito, fontSize = fontSize.sp, fontWeight = FontWeight(weight), color = Auna.Ink, letterSpacing = letterSpacing)
     BasicTextField(
@@ -344,6 +377,7 @@ fun AField(
         textStyle = style,
         cursorBrush = SolidColor(Auna.Green),
         keyboardOptions = keyboardOptions,
+        visualTransformation = if (secret) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         modifier = modifier,
         decorationBox = { inner ->
             Box(

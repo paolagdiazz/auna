@@ -14,8 +14,8 @@ android {
         applicationId = "com.auna.padres"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = 2
+        versionName = "0.2"
     }
 
     buildTypes {
@@ -23,6 +23,9 @@ android {
             optimization {
                 enable = false
             }
+            // Versión de prueba: firmada con la clave de desarrollo para poder instalarla
+            // encima de la anterior. Para Play Store hará falta una clave propia.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -46,5 +49,8 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization)
+    implementation(libs.anthropic.java)
+    implementation(libs.zxing.core)
+    implementation(libs.androidx.print)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

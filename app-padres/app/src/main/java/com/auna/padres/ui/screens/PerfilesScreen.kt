@@ -30,15 +30,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.auna.padres.AunaViewModel
 import com.auna.padres.data.PASSPORT_TOTAL
-import com.auna.padres.data.Sample
 import com.auna.padres.ui.AButton
-import com.auna.padres.ui.AField
 import com.auna.padres.ui.AIcon
-import com.auna.padres.ui.ChoiceButton
 import com.auna.padres.ui.CircleIconButton
 import com.auna.padres.ui.Girasol
 import com.auna.padres.ui.Gutter
 import com.auna.padres.ui.Icons
+import com.auna.padres.ui.KidEditor
 import com.auna.padres.ui.KidPhoto
 import com.auna.padres.ui.Navi
 import com.auna.padres.ui.PrimaryButton
@@ -54,8 +52,7 @@ fun PerfilesScreen(vm: AunaViewModel, navi: Navi) {
     val s by vm.state.collectAsState()
     var confirm by rememberSaveable { mutableStateOf<String?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
-    var newName by rememberSaveable { mutableStateOf("") }
-    var newAge by rememberSaveable { mutableStateOf("6-9") }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var created by rememberSaveable { mutableStateOf<String?>(null) }
 
     Column(
@@ -76,12 +73,12 @@ fun PerfilesScreen(vm: AunaViewModel, navi: Navi) {
                     .padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
                         Modifier
                             .weight(1f)
                             .clickable(role = Role.Button) { vm.selectKid(k.id) }
-                            .semantics { contentDescription = "Ver el perfil de ${k.name}" },
+                            .semantics { contentDescription = "Elegir el perfil de ${k.name}" },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
@@ -91,17 +88,23 @@ fun PerfilesScreen(vm: AunaViewModel, navi: Navi) {
                                 Txt(k.name, 22, 900)
                                 if (active) Tag("Activo", Auna.Green, Auna.White, fontSize = 12, weight = 900, hPad = 8.dp, vPad = 2.dp)
                             }
-                            Txt(k.age, 15, 700, Auna.Muted)
+                            if (k.age.isNotBlank()) Txt(k.age, 15, 700, Auna.Muted)
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                ProgressBar(k.done / PASSPORT_TOTAL.toFloat(), Modifier.weight(1f), height = 8.dp, track = Auna.Line)
-                                Txt("${k.done}/$PASSPORT_TOTAL", 13, 900)
+                                ProgressBar(k.passport.done / PASSPORT_TOTAL.toFloat(), Modifier.weight(1f), height = 8.dp, track = Auna.Line)
+                                Txt("${k.passport.done}/$PASSPORT_TOTAL", 13, 900)
                             }
                         }
                     }
-                    CircleIconButton(
-                        Icons.Trash, "Eliminar el perfil de ${k.name}", { confirm = k.id },
-                        size = 44.dp, iconSize = 20.dp, iconColor = Auna.Forest, stroke = 2.2f,
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        CircleIconButton(
+                            Icons.Pencil, "Editar el perfil de ${k.name}", { editingId = k.id },
+                            size = 44.dp, iconSize = 20.dp, iconColor = Auna.Green, stroke = 2.2f,
+                        )
+                        CircleIconButton(
+                            Icons.Trash, "Eliminar el perfil de ${k.name}", { confirm = k.id },
+                            size = 44.dp, iconSize = 20.dp, iconColor = Auna.Forest, stroke = 2.2f,
+                        )
+                    }
                 }
                 if (confirm == k.id) {
                     Column(
@@ -128,7 +131,7 @@ fun PerfilesScreen(vm: AunaViewModel, navi: Navi) {
             }
         }
 
-        if (s.kids.isEmpty() && !adding) {
+        if (s.kids.isEmpty()) {
             Column(
                 Modifier.fillMaxWidth().card(Auna.White, 24.dp).padding(horizontal = 16.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -139,44 +142,10 @@ fun PerfilesScreen(vm: AunaViewModel, navi: Navi) {
             }
         }
 
-        if (adding) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Auna.White)
-                    .border(2.dp, Auna.Green, RoundedCornerShape(24.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Txt("Nuevo perfil", 20, 900)
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Txt("Nombre", 15, 800, Auna.Muted)
-                    AField(newName, { newName = it }, "Ej.: Lucía", Modifier.fillMaxWidth())
-                }
-                Txt("Edad", 15, 800, Auna.Muted)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Sample.ages.forEach { a -> ChoiceButton(a, newAge == a, { newAge = a }, Modifier.weight(1f)) }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AButton({ adding = false }, Modifier.weight(1f), bg = Auna.White, border = Auna.Border, radius = 14.dp, minHeight = 52.dp) {
-                        Txt("Cancelar", 16, 800)
-                    }
-                    AButton(
-                        { created = vm.createKid(newName, newAge); adding = false },
-                        Modifier.weight(1f), radius = 14.dp, minHeight = 52.dp,
-                    ) { Txt("Crear perfil", 16, 900, Auna.White) }
-                }
-            }
-        } else {
-            PrimaryButton(
-                "Añadir niño", { adding = true; newName = ""; confirm = null },
-                Modifier.fillMaxWidth(), height = 64.dp, icon = Icons.Plus,
-            )
-        }
+        PrimaryButton("Añadir niño", { adding = true; confirm = null }, Modifier.fillMaxWidth(), height = 64.dp, icon = Icons.Plus)
 
         val just = created
-        if (just != null && !adding) {
+        if (just != null) {
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -194,16 +163,38 @@ fun PerfilesScreen(vm: AunaViewModel, navi: Navi) {
             }
         }
 
-        Row(
-            Modifier.fillMaxWidth().card(Auna.Mint, 22.dp).padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            listOf(Icons.Passport to "Su pasaporte", Icons.Scan to "Su QR", Icons.People to "Sus accesos").forEach { (icon, label) ->
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    AIcon(icon, Auna.Green, 26.dp, 2f)
-                    Txt(label, 14, 800, Auna.Green)
+        if (s.activeKid != null) {
+            Row(
+                Modifier.fillMaxWidth().card(Auna.Mint, 22.dp).padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                listOf(
+                    Triple(Icons.Passport, "Su pasaporte") { navi.tab(Routes.PASAPORTE) },
+                    Triple(Icons.Scan, "Su QR") { navi.open(Routes.QR) },
+                    Triple(Icons.People, "Sus accesos") { navi.tab(Routes.ACCESOS) },
+                ).forEach { (icon, label, go) ->
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(role = Role.Button, onClick = go)
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        AIcon(icon, Auna.Green, 26.dp, 2f)
+                        Txt(label, 14, 800, Auna.Green)
+                    }
                 }
             }
         }
+    }
+
+    if (adding) {
+        KidEditor(vm, null, onDismiss = { adding = false }, onCreated = { _, name -> created = name })
+    }
+    editingId?.let { id ->
+        val kid = s.kids.firstOrNull { it.id == id }
+        if (kid == null) editingId = null else KidEditor(vm, kid, onDismiss = { editingId = null })
     }
 }
