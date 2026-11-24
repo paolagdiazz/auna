@@ -118,8 +118,28 @@ data class AccessRequest(
     val kidId: String,
     val name: String,
     val role: String,
-    val place: String,
+    val place: String = "",
+    /** Nota que la persona escribió para la familia (desde la web). */
+    val note: String = "",
+    val email: String = "",
 )
+
+/** Aviso que llega desde la web o desde la tarjeta QR (urgencia, ubicación). */
+@Serializable
+data class Alert(
+    val id: String,
+    val kidId: String,
+    val kind: String,
+    val text: String,
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val at: Long = 0,
+    val seen: Boolean = false,
+)
+
+/** Quién ha consultado el pasaporte y cuándo. */
+@Serializable
+data class ViewLog(val kidId: String, val name: String, val at: Long)
 
 @Serializable
 data class Kid(
@@ -131,6 +151,10 @@ data class Kid(
     val passport: Passport = Passport(),
     val access: List<Access> = emptyList(),
     val qrShow: Map<String, Boolean> = Templates.qrDefaults(),
+    /** Id del niño en la nube (null = aún no se ha subido). */
+    val cloudId: String? = null,
+    /** Código de la tarjeta (AUN-XXXX-XXXX) para que profes y familiares lo añadan en la web. */
+    val code: String? = null,
 )
 
 /**
@@ -144,12 +168,15 @@ data class AppState(
     val requests: List<AccessRequest> = Sample.requests(),
     val proposals: List<Proposal> = Sample.proposals(),
     val readAloud: Boolean = false,
+    val alerts: List<Alert> = emptyList(),
+    val views: List<ViewLog> = emptyList(),
 ) {
     val activeKid: Kid? get() = kids.firstOrNull { it.id == activeKidId } ?: kids.firstOrNull()
 
     fun pendingProposals(kidId: String?) = proposals.filter { it.kidId == kidId && it.status == null }
     fun reviewedProposals(kidId: String?) = proposals.filter { it.kidId == kidId && it.status != null }
     fun requestsFor(kidId: String?) = requests.filter { it.kidId == kidId }
+    fun unseenAlerts(kidId: String?) = alerts.filter { it.kidId == kidId && !it.seen }
 }
 
 data class QA(val q: String, val a: String, val src: String)

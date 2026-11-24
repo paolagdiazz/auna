@@ -32,8 +32,8 @@ interface AiBackend {
  * las de Groq empiezan por «gsk_» (gratis), las de Claude por «sk-ant-».
  * Solo se envía el pasaporte del niño activo y lo que se acaba de contar o preguntar.
  */
-class Ai(apiKey: String) {
-    val backend: AiBackend = if (isGroqKey(apiKey)) GroqBackend(apiKey) else ClaudeBackend(apiKey)
+class Ai(val backend: AiBackend) {
+    constructor(apiKey: String) : this(if (isGroqKey(apiKey)) GroqBackend(apiKey) else ClaudeBackend(apiKey))
 
     fun warmUp() = backend.warmUp()
 

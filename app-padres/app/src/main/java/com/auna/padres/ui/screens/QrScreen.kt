@@ -96,7 +96,9 @@ fun QrScreen(vm: AunaViewModel, navi: Navi) {
         }
         return
     }
-    val qrText = QrCard.text(kid)
+    val cloudUi by vm.cloudUi.collectAsState()
+    val online = cloudUi.signedIn && kid.cloudId != null
+    val qrText = QrCard.payload(kid, online)
     BackHandler(enabled = preview) { preview = false }
 
     AnimatedContent(
@@ -113,10 +115,10 @@ fun QrScreen(vm: AunaViewModel, navi: Navi) {
                     kid = kid, qrText = qrText, toast = toast,
                     onBack = { navi.back() },
                     onToggle = { key, on -> vm.setQr(kid.id, key, on) },
-                    onPrint = { scope.launch { runCatching { QrCard.printCard(context, kid) }.onFailure { toast = "No se ha podido abrir la impresión." } } },
+                    onPrint = { scope.launch { runCatching { QrCard.printCard(context, kid, qrText) }.onFailure { toast = "No se ha podido abrir la impresión." } } },
                     onSave = {
                         scope.launch {
-                            toast = runCatching { withContext(Dispatchers.IO) { QrCard.save(context, kid) } }.getOrElse { "No se ha podido guardar la imagen." }
+                            toast = runCatching { withContext(Dispatchers.IO) { QrCard.save(context, kid, qrText) } }.getOrElse { "No se ha podido guardar la imagen." }
                         }
                     },
                     onPreview = { preview = true },
@@ -124,7 +126,7 @@ fun QrScreen(vm: AunaViewModel, navi: Navi) {
                     onPhones = { navi.tab(Routes.PASAPORTE) },
                 )
             } else {
-                PreviewView(kid, qrText, onBack = { preview = false }, onCall = { phone ->
+                PreviewView(kid, if (online) QrCard.text(kid) else qrText, onBack = { preview = false }, link = if (online) qrText else null, onCall = { phone ->
                     context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone.filter { it.isDigit() || it == '+' })))
                 })
             }
@@ -154,7 +156,7 @@ fun QrScreen(vm: AunaViewModel, navi: Navi) {
                     16, 600, lineHeight = 1.4,
                 )
                 Txt("Imprime una nueva. Si no quieres que la tarjeta perdida diga algo, quítalo de «Qué se muestra» antes de imprimir.", 16, 600, Auna.Muted, lineHeight = 1.4)
-                PrimaryButton("Imprimir otra", { lost = false; runCatching { QrCard.printCard(context, kid) } }, Modifier.fillMaxWidth())
+                PrimaryButton("Imprimir otra", { lost = false; runCatching { QrCard.printCard(context, kid, qrText) } }, Modifier.fillMaxWidth())
             }
         }
     }
@@ -190,6 +192,7 @@ private fun CardView(
                 Girasol(36.dp)
                 Txt("Hola, soy ${kid.name}", 22, 900, Auna.White, lineHeight = 1.1)
                 Txt(if (kid.passport.noHabla) "No hablo. Escanéame." else "Escanéame.", 16, 700, Auna.Leaf)
+                if (qrText.startsWith("http") && kid.code != null) Txt(kid.code, 14, 800, Auna.White)
             }
         }
 
@@ -232,7 +235,8 @@ private fun CardView(
 }
 
 @Composable
-private fun PreviewView(kid: Kid, qrText: String, onBack: () -> Unit, onCall: (String) -> Unit) {
+private fun PreviewView(kid: Kid, qrText: String, onBack: () -> Unit, link: String? = null, onCall: (String) -> Unit) {
+    val context = LocalContext.current
     val phones = if (kid.qrShow["familia"] ?: true) kid.passport.contacts.filter { it.phone.isNotBlank() } else emptyList()
     Column(Modifier.fillMaxSize()) {
         BackHeader("Lo que ve quien escanea", onBack, Modifier.padding(start = Gutter, end = Gutter, top = 20.dp, bottom = 12.dp), titleSize = 22)
@@ -248,12 +252,20 @@ private fun PreviewView(kid: Kid, qrText: String, onBack: () -> Unit, onCall: (S
                 .padding(horizontal = 18.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            if (link != null) {
+                Txt("Al escanear se abre su página en la web, con lo de emergencia y un botón para iniciar sesión:", 15, 800, Auna.Muted, lineHeight = 1.35)
+                AButton({ context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link))) }, Modifier.fillMaxWidth(), bg = Auna.Mint) {
+                    AIcon(Icons.Eye, Auna.Green, 22.dp, 2.2f)
+                    Txt("Abrir su página", 17, 900, Auna.Green)
+                }
+                Txt("Lo que enseña en caso de emergencia:", 15, 800, Auna.Muted)
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Txt("Al escanear con la cámara:", 15, 800, Auna.Muted, Modifier.weight(1f))
+                Txt(if (link != null) "Ficha de emergencia" else "Al escanear con la cámara:", 15, 800, Auna.Muted, Modifier.weight(1f))
                 Tag("Vista previa", Auna.GreyCard, Auna.Ink, fontSize = 13, weight = 900)
             }
             Txt(qrText, 18, 700, lineHeight = 1.45, modifier = Modifier.fillMaxWidth().card(Auna.Bg, 18.dp).padding(16.dp))
-            Txt("Funciona con cualquier móvil, sin internet y sin instalar nada.", 14, 700, Auna.Muted)
+            if (link == null) Txt("Funciona con cualquier móvil, sin internet y sin instalar nada.", 14, 700, Auna.Muted)
             if (phones.isNotEmpty()) {
                 Txt("Prueba los teléfonos", 14, 800, Auna.Muted, upper = true)
                 phones.forEach { c ->

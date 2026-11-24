@@ -54,6 +54,9 @@ fun EditSheet(
     deleteLabel: String = "Borrar",
     saveLabel: String = "Guardar",
     extra: @Composable () -> Unit = {},
+    secondaryLabel: String? = null,
+    onSecondary: ((List<String>) -> Unit)? = null,
+    deleteConfirmText: String = "No se puede deshacer.",
 ) {
     val values = remember { mutableStateListOf(*fields.map { it.value }.toTypedArray()) }
     val focus = remember { FocusRequester() }
@@ -96,6 +99,9 @@ fun EditSheet(
             }
             extra()
             PrimaryButton(saveLabel, { onSave(values.toList()) }, Modifier.fillMaxWidth())
+            if (secondaryLabel != null && onSecondary != null) {
+                SecondaryButton(secondaryLabel, { onSecondary(values.toList()) }, Modifier.fillMaxWidth(), height = 52.dp, fontSize = 16)
+            }
             if (onDelete != null) {
                 SecondaryButton(deleteLabel, { confirm.add(true) }, Modifier.fillMaxWidth(), height = 52.dp, fontSize = 16, color = Auna.Forest, weight = 800)
             }
@@ -105,7 +111,7 @@ fun EditSheet(
     if (confirm.isNotEmpty() && onDelete != null) {
         ConfirmDialog(
             title = "¿$deleteLabel?",
-            text = "No se puede deshacer.",
+            text = deleteConfirmText,
             confirmLabel = deleteLabel,
             onConfirm = { confirm.clear(); onDelete() },
             onDismiss = { confirm.clear() },

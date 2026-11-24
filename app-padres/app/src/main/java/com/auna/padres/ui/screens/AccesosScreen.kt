@@ -88,6 +88,14 @@ private fun untilFor(label: String): Long? {
     }
 }
 
+fun whenText(millis: Long): String {
+    val c = Calendar.getInstance().apply { timeInMillis = millis }
+    val now = Calendar.getInstance()
+    val hm = "%02d:%02d".format(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE))
+    return if (c.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR) && c.get(Calendar.YEAR) == now.get(Calendar.YEAR)) "hoy, $hm"
+    else "${c.get(Calendar.DAY_OF_MONTH)}/${c.get(Calendar.MONTH) + 1}, $hm"
+}
+
 fun permissionLabel(p: String) = permissions.firstOrNull { it.first == p }?.second ?: "Solo ver"
 
 fun expiryLabel(until: Long?): String? {
@@ -225,7 +233,32 @@ fun AccesosScreen(vm: AunaViewModel, navi: Navi) {
             }
         }
 
-        PrimaryButton("Invitar", { inviting = true }, Modifier.fillMaxWidth(), radius = 18.dp, icon = Icons.Plus)
+        PrimaryButton(
+            "Invitar",
+            {
+                // Con la cuenta de la familia: se envía el enlace a la web y el código de la tarjeta.
+                val text = vm.invitationText(kid)
+                if (text != null) share(context, text) else inviting = true
+            },
+            Modifier.fillMaxWidth(), radius = 18.dp, icon = Icons.Plus,
+        )
+        if (vm.invitationText(kid) != null) {
+            Txt("Le llegará un enlace a la web de Aúna. Cuando cree su cuenta y te envíe su nota, la verás aquí arriba.", 14, 700, Auna.Muted)
+        }
+
+        val views = s.views.filter { it.kidId == kid.id }
+        if (views.isNotEmpty()) {
+            Txt("Últimas consultas", 14, 800, Auna.Muted, Modifier.padding(top = 6.dp), upper = true)
+            Column(Modifier.fillMaxWidth().card(Auna.White, 22.dp).padding(horizontal = 16.dp, vertical = 6.dp)) {
+                views.take(8).forEach { v ->
+                    Row(Modifier.fillMaxWidth().defaultMinSize(minHeight = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+                        AIcon(Icons.Eye, Auna.Muted, 18.dp, 2.2f)
+                        Txt(v.name.ifBlank { "Alguien" }, 16, 800, modifier = Modifier.weight(1f).padding(start = 10.dp))
+                        Txt(whenText(v.at), 14, 700, Auna.Muted)
+                    }
+                }
+            }
+        }
     }
 
     if (kid != null && (inviting || editing != null)) {
@@ -259,16 +292,19 @@ private fun RequestCard(req: AccessRequest, custom: Boolean, onToggleCustom: () 
             Initial(req.name.take(1), 52.dp, Auna.MintStrong, Auna.DeepGreen, 22)
             Column(Modifier.weight(1f)) {
                 Txt(req.name, 18, 900)
-                Txt("${req.role} · ${req.place}", 15, 600, Auna.Muted)
+                Txt(listOf(req.role, req.place).filter { it.isNotBlank() }.joinToString(" · "), 15, 600, Auna.Muted)
             }
             Tag("NUEVA", Auna.CoralBg, Auna.Coral, fontSize = 12, weight = 900, hPad = 8.dp)
+        }
+        if (req.note.isNotBlank()) {
+            Txt("«${req.note}»", 16, 700, lineHeight = 1.35, modifier = Modifier.fillMaxWidth().card(Auna.GreyCard, 16.dp).padding(horizontal = 14.dp, vertical = 12.dp))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             AButton({ onAnswer(null) }, Modifier.weight(1f), bg = Auna.White, border = Auna.Border, radius = 14.dp, minHeight = 52.dp, hPadding = 6.dp) {
                 Txt("No", 15, 800)
             }
             AButton(
-                { onAnswer(Access(newId("a"), first, req.role, PERM_VIEW, untilFor("Solo hoy"))) },
+                { onAnswer(Access(req.id, first, req.role, PERM_VIEW, untilFor("Solo hoy"))) },
                 Modifier.weight(1f), bg = Auna.White, border = Auna.Green, radius = 14.dp, minHeight = 52.dp, hPadding = 6.dp,
             ) { Txt("Solo hoy", 15, 800, Auna.Green) }
             AButton(
@@ -295,7 +331,7 @@ private fun RequestCard(req: AccessRequest, custom: Boolean, onToggleCustom: () 
                     }
                 }
                 PrimaryButton(
-                    "Dar acceso", { onAnswer(Access(newId("a"), first, req.role, perm, untilFor(dur))) },
+                    "Dar acceso", { onAnswer(Access(req.id, first, req.role, perm, untilFor(dur))) },
                     Modifier.fillMaxWidth(), height = 52.dp, fontSize = 16, radius = 14.dp,
                 )
             }

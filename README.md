@@ -8,7 +8,10 @@ El pasaporte que te entiende: la información de un niño que no habla, ordenada
 | --- | --- |
 | `app-padres/` | App Android para madres, padres y tutores (Kotlin + Jetpack Compose). |
 | `marca/` | Kit de marca: logotipos, iconos de app, tarjetas QR, paleta y tipografía Nunito. |
-| `web/` | *(Pendiente)* Web app para familiares y profesionales. |
+| `web/` | Web para familiares y profes (GitHub Pages): https://paolagdiazz.github.io/auna/ |
+| `firebase/` | Reglas de seguridad de la base de datos (Firestore). |
+| `worker/` | Puente de IA en Cloudflare (guarda la clave de Groq). |
+| `docs/` | [Puesta en marcha](docs/PUESTA-EN-MARCHA.md): Firebase, Cloudflare y GitHub Pages, todo gratis. |
 
 ## App de padres
 

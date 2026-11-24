@@ -1,0 +1,91 @@
+rules_version = '2';
+
+// Reglas de seguridad de Aúna (Firestore).
+// Idea: el pasaporte solo lo ven la familia (owners) y quien la familia ha aceptado (access).
+// La ficha de emergencia (emergency/card) es pública: es lo que ve quien escanea el QR.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function kid(kidId) { return get(/databases/$(database)/documents/kids/$(kidId)).data; }
+    function isOwner(kidId) { return signedIn() && me() in kid(kidId).owners; }
+    function accessDoc(kidId) { return /databases/$(database)/documents/kids/$(kidId)/access/$(me()); }
+    function hasAccess(kidId) {
+      return signedIn() && exists(accessDoc(kidId)) &&
+        (get(accessDoc(kidId)).data.until == null || get(accessDoc(kidId)).data.until > request.time);
+    }
+    function canPropose(kidId) {
+      return hasAccess(kidId) && get(accessDoc(kidId)).data.permission in ['proponer', 'editar'];
+    }
+
+    // Perfil de cada persona y su lista de niños (pedidos o aceptados).
+    match /users/{uid} {
+      allow read, write: if signedIn() && me() == uid;
+      match /links/{kidId} {
+        allow read, write: if signedIn() && me() == uid;
+      }
+    }
+
+    // Código de la tarjeta (AUN-XXXX-XXXX) → niño. Lo puede buscar cualquiera con sesión.
+    match /codes/{code} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && me() in get(/databases/$(database)/documents/kids/$(request.resource.data.kidId)).data.owners;
+      allow delete: if signedIn() && me() in get(/databases/$(database)/documents/kids/$(resource.data.kidId)).data.owners;
+    }
+
+    match /kids/{kidId} {
+      allow get: if (signedIn() && me() in resource.data.owners) || hasAccess(kidId);
+      // La app de padres lista «mis niños» con where owners array-contains uid.
+      allow list: if signedIn() && me() in resource.data.owners;
+      allow create: if signedIn() && me() in request.resource.data.owners;
+      allow update: if signedIn() && me() in resource.data.owners && me() in request.resource.data.owners;
+      allow delete: if signedIn() && me() in resource.data.owners;
+
+      // Secciones marcadas «Solo familia» (p. ej. Salud): solo la familia.
+      match /private/{doc} {
+        allow read, write: if isOwner(kidId);
+      }
+
+      // Ficha de emergencia pública (QR).
+      match /emergency/{doc} {
+        allow read: if true;
+        allow write: if isOwner(kidId);
+      }
+
+      // Quién tiene acceso. Lo gestiona la familia; cada persona ve el suyo.
+      match /access/{uid} {
+        allow read: if isOwner(kidId) || (signedIn() && me() == uid);
+        allow write: if isOwner(kidId);
+      }
+
+      // Solicitudes de acceso: cada persona escribe la suya; la familia decide.
+      match /requests/{uid} {
+        allow read: if isOwner(kidId) || (signedIn() && me() == uid);
+        allow create, update: if signedIn() && me() == uid
+          && request.resource.data.note is string && request.resource.data.note.size() < 2000;
+        allow delete: if isOwner(kidId) || (signedIn() && me() == uid);
+      }
+
+      // Propuestas de cambio de profes y terapeutas: la familia las acepta o descarta.
+      match /proposals/{id} {
+        allow read: if isOwner(kidId) || (signedIn() && resource.data.fromUid == me());
+        allow create: if canPropose(kidId) && request.resource.data.fromUid == me();
+        allow update, delete: if isOwner(kidId);
+      }
+
+      // Avisos para la familia (urgencias, ubicación). Desde el QR se pueden enviar sin sesión.
+      match /alerts/{id} {
+        allow read, update, delete: if isOwner(kidId);
+        allow create: if request.resource.data.keys().hasOnly(['kind', 'text', 'fromName', 'lat', 'lng', 'createdAt', 'seen'])
+          && request.resource.data.text is string && request.resource.data.text.size() < 500;
+      }
+
+      // Registro de consultas: «Las familias ven quién consulta y cuándo».
+      match /views/{id} {
+        allow read, delete: if isOwner(kidId);
+        allow create: if hasAccess(kidId) && request.resource.data.uid == me();
+      }
+    }
+  }
+}

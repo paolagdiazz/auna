@@ -178,7 +178,7 @@ private fun KeyNeeded(onKey: () -> Unit, onRetry: (() -> Unit)?) {
     ) {
         Txt("Falta conectar la IA", 18, 900, Auna.Coral)
         Txt(
-            "Para ordenar lo que cuentas, Aúna usa una IA. Pega tu clave en Ajustes › IA (solo una vez; la de Groq es gratis). Lo que has contado no se pierde.",
+            "Para ordenar lo que cuentas, Aúna usa una IA. En Ajustes, entra en la cuenta de la familia o pega una clave (la de Groq es gratis). Lo que has contado no se pierde.",
             15, 700, Auna.Coral, lineHeight = 1.35,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

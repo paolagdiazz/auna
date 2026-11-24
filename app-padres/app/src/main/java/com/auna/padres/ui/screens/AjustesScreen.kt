@@ -53,6 +53,10 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
     val s by vm.state.collectAsState()
     var confirmReset by rememberSaveable { mutableStateOf(false) }
     val key by vm.claudeKey.collectAsState()
+    val cloudUi by vm.cloudUi.collectAsState()
+    var accountSheet by rememberSaveable { mutableStateOf(false) }
+    var accountMsg by remember { mutableStateOf<String?>(null) }
+    var accountBusy by remember { mutableStateOf(false) }
     var keySheet by rememberSaveable { mutableStateOf(false) }
     var checking by remember { mutableStateOf(false) }
     var keyMsg by remember { mutableStateOf<String?>(null) }
@@ -89,6 +93,29 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
             AIcon(Icons.ChevronRight, Auna.Green, 22.dp, 2.5f)
         }
 
+        if (com.auna.padres.cloud.CloudConfig.enabled) {
+            Row(
+                Modifier.fillMaxWidth().card(Auna.White, 22.dp).clickable(role = Role.Button) { accountSheet = true }.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                AIcon(Icons.People, Auna.Green, 24.dp, 2.2f)
+                Column(Modifier.weight(1f)) {
+                    Txt("Cuenta de la familia", 17, 800)
+                    Txt(
+                        when {
+                            !cloudUi.signedIn -> "Sin conectar: la web no ve el pasaporte"
+                            cloudUi.syncing -> "Sincronizando…"
+                            cloudUi.error != null -> cloudUi.error!!
+                            else -> "Conectada · ${cloudUi.email ?: ""}"
+                        },
+                        14, 700, if (!cloudUi.signedIn || cloudUi.error != null) Auna.Forest else Auna.Green,
+                    )
+                }
+                AIcon(Icons.ChevronRight, Auna.Muted, 20.dp, 2.5f)
+            }
+        }
+
         Column(Modifier.fillMaxWidth().card(Auna.White, 22.dp).padding(horizontal = 16.dp, vertical = 4.dp)) {
             LinkRow(Icons.Scan, "Mi tarjeta QR") { navi.open(Routes.QR) }
             Divider()
@@ -104,7 +131,14 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
                 AIcon(Icons.Sparkle, Auna.Green, 24.dp, 2.2f)
                 Column(Modifier.weight(1f)) {
                     Txt("IA para Hablar y Comprobar", 17, 800)
-                    Txt(if (key.isBlank()) "Sin conectar: añade tu clave" else "Conectada a ${com.auna.padres.Ai.providerName(key)}", 14, 700, if (key.isBlank()) Auna.Forest else Auna.Green)
+                    Txt(
+                        when {
+                            key.isNotBlank() -> "Conectada a ${com.auna.padres.Ai.providerName(key)}"
+                            vm.aiReady -> "IA gratuita de Aúna (con tu cuenta)"
+                            else -> "Sin conectar: añade tu clave o entra en tu cuenta"
+                        },
+                        14, 700, if (!vm.aiReady) Auna.Forest else Auna.Green,
+                    )
                 }
                 AIcon(Icons.ChevronRight, Auna.Muted, 20.dp, 2.5f)
             }
@@ -115,6 +149,60 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
             "Borrar todos los datos", { confirmReset = true }, Modifier.fillMaxWidth(),
             height = 52.dp, fontSize = 16, radius = 16.dp, color = Auna.Forest, weight = 800,
         )
+    }
+
+    if (accountSheet) {
+        if (cloudUi.signedIn) {
+            EditSheet(
+                title = "Cuenta de la familia",
+                fields = emptyList(),
+                onDismiss = { accountSheet = false },
+                saveLabel = if (cloudUi.syncing) "Sincronizando…" else "Sincronizar ahora",
+                onSave = { vm.syncNow() },
+                onDelete = { vm.cloudSignOut(); accountSheet = false },
+                deleteLabel = "Cerrar sesión",
+                deleteConfirmText = "El pasaporte se queda en este móvil y en la nube. Puedes volver a entrar cuando quieras.",
+                extra = {
+                    Txt("Conectada como ${cloudUi.email ?: ""}.", 16, 800)
+                    Txt(
+                        "El pasaporte se guarda también en la nube para que las personas que aceptes lo vean en la web. " +
+                            "Las secciones «Solo familia» no se comparten. Las solicitudes, propuestas y avisos de la web llegan aquí solos.",
+                        14, 600, Auna.Muted, lineHeight = 1.4,
+                    )
+                    cloudUi.error?.let { Txt(it, 15, 800, Auna.Coral) }
+                },
+            )
+        } else {
+            EditSheet(
+                title = "Cuenta de la familia",
+                fields = listOf(
+                    Field("Correo", cloudUi.email ?: "", "familia@correo.es", keyboard = androidx.compose.ui.text.input.KeyboardType.Email),
+                    Field("Contraseña", "", "Mínimo 8 caracteres", secret = true),
+                ),
+                onDismiss = { if (!accountBusy) { accountSheet = false; accountMsg = null } },
+                saveLabel = if (accountBusy) "Entrando…" else "Entrar",
+                onSave = { (email, pass) ->
+                    if (!accountBusy) { accountBusy = true; accountMsg = null
+                        scope.launch { val e = vm.cloudSignIn(email, pass, create = false); accountBusy = false; if (e == null) accountSheet = false else accountMsg = e }
+                    }
+                },
+                onDelete = null,
+                extra = {
+                    Txt(
+                        "Con la cuenta de la familia, profes y familiares pueden pedir acceso desde la web y tú decides aquí. " +
+                            "Si es tu primera vez, escribe tu correo y una contraseña y pulsa «Crear cuenta».",
+                        14, 600, Auna.Muted, lineHeight = 1.4,
+                    )
+                    accountMsg?.let { Txt(it, 15, 800, Auna.Coral) }
+                },
+                secondaryLabel = "Crear cuenta",
+                onSecondary = { (email, pass) ->
+                    if (!accountBusy) { accountBusy = true; accountMsg = null
+                        scope.launch { val e = vm.cloudSignIn(email, pass, create = true); accountBusy = false; if (e == null) accountSheet = false else accountMsg = e }
+                    }
+                },
+            )
+        }
     }
 
     if (keySheet) {

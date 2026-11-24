@@ -93,6 +93,36 @@ fun InicioScreen(vm: AunaViewModel, navi: Navi) {
 
         Txt("¡Hola, familia!", 30, 900, modifier = Modifier.padding(top = 2.dp))
 
+        // Avisos que llegan desde la web o desde la tarjeta QR (urgencias, ubicación).
+        val context = androidx.compose.ui.platform.LocalContext.current
+        s.alerts.filter { !it.seen }.forEach { a ->
+            val kidName = s.kids.firstOrNull { it.id == a.kidId }?.name ?: ""
+            Column(
+                Modifier.fillMaxWidth().card(Auna.Red, 20.dp).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    AIcon(Icons.Warning, Auna.White, 24.dp, 2.2f)
+                    Txt(if (a.kind == "ubicacion") "Ubicación de $kidName" else "Aviso sobre $kidName", 18, 900, Auna.White, Modifier.weight(1f))
+                    Txt(com.auna.padres.ui.screens.whenText(a.at), 14, 700, Auna.White)
+                }
+                Txt(a.text, 16, 700, Auna.White, lineHeight = 1.35)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (a.lat != null && a.lng != null) {
+                        com.auna.padres.ui.AButton(
+                            {
+                                context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("geo:${a.lat},${a.lng}?q=${a.lat},${a.lng}(${kidName})")))
+                            },
+                            Modifier.weight(1f), bg = Auna.White, radius = 14.dp, minHeight = 48.dp,
+                        ) { Txt("Ver en el mapa", 15, 900, Auna.Red) }
+                    }
+                    com.auna.padres.ui.AButton({ vm.markAlertSeen(a) }, Modifier.weight(1f), bg = Auna.White, radius = 14.dp, minHeight = 48.dp) {
+                        Txt("Visto", 15, 900, Auna.Red)
+                    }
+                }
+            }
+        }
+
         if (kid == null) {
             NoKid({ navi.tab(Routes.PERFILES) })
         } else {

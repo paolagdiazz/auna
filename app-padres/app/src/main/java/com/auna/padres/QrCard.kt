@@ -71,8 +71,15 @@ object QrCard {
         return Bitmap.createBitmap(pixels, m.width, m.height, Bitmap.Config.ARGB_8888)
     }
 
+    /**
+     * Lo que lleva el QR: con la cuenta de la familia, el enlace a su página en la web
+     * (emergencia + iniciar sesión); sin cuenta, la ficha de emergencia en texto.
+     */
+    fun payload(kid: Kid, online: Boolean): String =
+        if (online && kid.cloudId != null) com.auna.padres.cloud.CloudConfig.cardUrl(kid.cloudId) else text(kid)
+
     /** Tarjeta tamaño carné (85,6 × 54 mm) a 300 ppp. */
-    fun cardBitmap(context: Context, kid: Kid): Bitmap {
+    fun cardBitmap(context: Context, kid: Kid, qr: String = text(kid)): Bitmap {
         val w = 1011; val h = 638
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
@@ -86,7 +93,7 @@ object QrCard {
         val left = 60f; val top = (h - qrSize) / 2f
         paint.color = Color.WHITE
         c.drawRoundRect(RectF(left - 18, top - 18, left + qrSize + 18, top + qrSize + 18), 28f, 28f, paint)
-        val m = matrix(text(kid))
+        val m = matrix(qr)
         // Sin suavizado, para que los módulos no dejen rayas entre sí.
         val dark = Paint().apply { color = Color.parseColor("#173326"); isAntiAlias = false }
         val cell = qrSize.toFloat() / m.width
@@ -102,15 +109,19 @@ object QrCard {
         paint.color = leaf; paint.typeface = bold; paint.textSize = 38f
         c.drawText(if (kid.passport.noHabla) "No hablo." else "Escanéame", tx, 450f, paint)
         if (kid.passport.noHabla) c.drawText("Escanéame.", tx, 498f, paint)
+        if (qr.startsWith("http") && kid.code != null) {
+            paint.color = Color.WHITE; paint.textSize = 30f
+            c.drawText(kid.code, tx, 580f, paint)
+        }
         return bmp
     }
 
     /** Página A4 con la tarjeta a tamaño real y marcas de corte. */
-    fun printCard(context: Context, kid: Kid) {
+    fun printCard(context: Context, kid: Kid, qr: String = text(kid)) {
         val page = Bitmap.createBitmap(2480, 3508, Bitmap.Config.ARGB_8888)
         val c = Canvas(page)
         c.drawColor(Color.WHITE)
-        val card = cardBitmap(context, kid)
+        val card = cardBitmap(context, kid, qr)
         val x = 236f; val y = 236f
         c.drawBitmap(card, x, y, null)
         val guide = Paint().apply { color = Color.LTGRAY; strokeWidth = 3f; style = Paint.Style.STROKE; pathEffect = android.graphics.DashPathEffect(floatArrayOf(18f, 12f), 0f) }
@@ -119,8 +130,8 @@ object QrCard {
     }
 
     /** Guarda la tarjeta como imagen en la galería (Imágenes › Aúna). Devuelve dónde. */
-    fun save(context: Context, kid: Kid): String {
-        val bmp = cardBitmap(context, kid)
+    fun save(context: Context, kid: Kid, qr: String = text(kid)): String {
+        val bmp = cardBitmap(context, kid, qr)
         val name = "Auna_tarjeta_${kid.name.replace(Regex("[^A-Za-zÀ-ÿ0-9]"), "_")}_${System.currentTimeMillis()}.png"
         return if (Build.VERSION.SDK_INT >= 29) {
             val values = ContentValues().apply {
