@@ -14,14 +14,18 @@ android {
         applicationId = "com.auna.padres"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2"
+        versionCode = 3
+        versionName = "0.2.1"
     }
 
     buildTypes {
         release {
+            // R8 reduce el APK (el SDK de Anthropic trae sus propias reglas) y lo hace más rápido.
             optimization {
-                enable = false
+                enable = true
+                keepRules {
+                    files.add(file("proguard-rules.pro"))
+                }
             }
             // Versión de prueba: firmada con la clave de desarrollo para poder instalarla
             // encima de la anterior. Para Play Store hará falta una clave propia.

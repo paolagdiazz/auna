@@ -41,6 +41,12 @@ class Claude(apiKey: String) {
         .timeout(Duration.ofSeconds(90))
         .build()
 
+    /** Carga por adelantado las clases del SDK (JSON y modelos) sin hacer ninguna llamada. */
+    fun warmUp() {
+        JsonOutputFormat.Schema.builder().putAdditionalProperty("type", JsonValue.from(mapOf("a" to listOf(1)))).build()
+        MessageCreateParams.builder().model(MODEL).maxTokens(1).addUserMessage("x").build()
+    }
+
     /** Comprueba que la clave funciona (no gasta tokens). */
     suspend fun check() = call { client.models().retrieve(MODEL); Unit }
 

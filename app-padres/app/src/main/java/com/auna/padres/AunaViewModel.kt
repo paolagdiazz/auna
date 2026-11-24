@@ -43,7 +43,19 @@ class AunaViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Clave de Claude (solo en este móvil, fuera del JSON del pasaporte) ----------
     private val secrets = app.getSharedPreferences("auna_privado", android.content.Context.MODE_PRIVATE)
     val claudeKey = MutableStateFlow(secrets.getString("claude_key", "") ?: "")
-    private fun claude(): Claude? = claudeKey.value.takeIf { it.isNotBlank() }?.let { Claude(it) }
+    private var cachedClaude: Pair<String, Claude>? = null
+
+    /** Cliente de Claude reutilizado mientras no cambie la clave (crearlo es lo más lento de la primera llamada). */
+    private fun claude(): Claude? {
+        val key = claudeKey.value.takeIf { it.isNotBlank() } ?: return null
+        cachedClaude?.let { (k, c) -> if (k == key) return c }
+        return Claude(key).also { cachedClaude = key to it }
+    }
+
+    init {
+        // Prepara el cliente en segundo plano para que la primera respuesta llegue antes.
+        if (claudeKey.value.isNotBlank()) viewModelScope.launch(Dispatchers.IO) { runCatching { claude()?.warmUp() } }
+    }
 
     /** Guarda la clave y comprueba que funciona. Devuelve null si va bien o el mensaje de error. */
     suspend fun saveClaudeKey(key: String): String? {

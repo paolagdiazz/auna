@@ -404,7 +404,8 @@ private fun ErrorView(t: TalkUi, onRetry: () -> Unit, onKey: () -> Unit, onBack:
             CircleIconButton(Icons.ChevronLeft, "Volver", onBack)
             Txt("No se ha podido ordenar", 22, 900)
         }
-        if (t.needsKey) KeyNeeded(onKey, onRetry) else t.error?.let { ErrorCard(it) }
+        t.error?.let { ErrorCard(it) }
+        if (t.needsKey) KeyNeeded(onKey, onRetry)
         if (t.pendingText.isNotBlank()) {
             Txt("Lo que has contado (no se pierde):", 15, 800, Auna.Muted)
             Txt("«${t.pendingText.trim()}»", 16, 600, Auna.Ink, Modifier.fillMaxWidth().card(Auna.White, 20.dp).padding(16.dp), lineHeight = 1.4)

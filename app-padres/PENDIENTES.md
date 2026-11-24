@@ -78,5 +78,6 @@ Revisión pantalla a pantalla. `[x]` = arreglado y comprobado en el emulador.
 6. **«Mi gente» cuenta como hecho** si hay teléfonos de la familia.
 7. **Los ejemplos no tienen teléfonos inventados**, para no llamar a desconocidos. La app avisa de que faltan.
 8. **Datos guardados nuevos:** el formato cambió, así que lo que editaste en la v0.1 no se pasa a la v0.2. La app empieza otra vez con Marco y Lucas.
-9. **APK de prueba:** versión optimizada (`release`) firmada con la clave de desarrollo, para que se instale encima de la v0.1. Para Play Store hará falta una clave propia.
-10. **Release de GitHub:** creé la etiqueta `v0.2` en el repositorio. Para subir el APK hace falta tu sesión de GitHub: el APK y las notas están en la carpeta `release/` (junto al repo).
+9. **APK de prueba:** versión optimizada (`release`, con R8) firmada con la clave de desarrollo, para que se instale encima de la v0.1. Pasa de 19,4 MB a 3,1 MB y arranca más rápido. Para Play Store hará falta una clave propia.
+10. **Release de GitHub:** la versión buena es la etiqueta `v0.2.1` (la `v0.2` se quedó en el commit anterior, sin R8). El APK y las notas están en la carpeta `release/`, junto al repo.
+11. **Claude se prepara al abrir la app** (si hay clave), para que la primera respuesta no tarde.
