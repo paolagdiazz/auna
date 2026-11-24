@@ -16,24 +16,62 @@ Aúna usa tres servicios gratuitos. Hay que configurarlos una vez.
 3. **Authentication › Configuración › Dominios autorizados**: añade `paolagdiazz.github.io`.
 4. **Firestore Database › Crear base de datos**: ubicación `eur3`, modo producción.
 5. **Firestore › Reglas**: borra lo que hay, pega el contenido de [`firebase/firestore.rules`](../firebase/firestore.rules) y pulsa **Publicar**.
-6. **Configuración del proyecto › General › Tus apps › Web (`</>`)**: copia `firebaseConfig`.
-   - Pégalo en [`web/config.js`](../web/config.js) (`export const firebaseConfig = { ... };`).
-   - Copia `apiKey` y `projectId` en [`app-padres/.../cloud/CloudConfig.kt`](../app-padres/app/src/main/java/com/auna/padres/cloud/CloudConfig.kt).
+6. **Copiar la configuración de la web** (`firebaseConfig`):
+   1. Arriba a la izquierda, junto a **Descripción general del proyecto**, pulsa el **engranaje ⚙** › **Configuración del proyecto**.
+   2. Quédate en la pestaña **General** y baja hasta el final, a la tarjeta **Tus apps**.
+   3. Si dice «No hay apps en tu proyecto», pulsa el botón redondo con el símbolo **`</>`** (Web).
+      Si ya creaste la app web antes, salta al punto 7.
+   4. En **Apodo de la app** escribe `Aúna web`. **No** marques «Configurar también Firebase Hosting». Pulsa **Registrar app**.
+   5. Aparece **Añadir el SDK de Firebase** con dos opciones (npm / `<script>`). Da igual cuál: en las dos sale un bloque que empieza por
+      `const firebaseConfig = {` y termina en `};`, con 6 o 7 líneas (`apiKey`, `authDomain`, `projectId`, `storageBucket`,
+      `messagingSenderId`, `appId` y quizá `measurementId`).
+   6. Selecciona desde `const firebaseConfig = {` hasta `};` (incluidos), cópialo y **pégamelo en el chat**. Yo lo pongo en la web y en la app.
+      No es secreto: toda web hecha con Firebase lo lleva dentro.
+   7. Pulsa **Ir a la consola**. Si ya habías registrado la app: en **Tus apps** pulsa **Aúna web** y, en **Configuración del SDK y de la app**,
+      elige **Configuración** (o **Config**): ahí está el mismo bloque.
 
 ## 2. Cloudflare (puente de IA)
 
-1. https://dash.cloudflare.com → crea una cuenta gratis.
-2. **Workers & Pages › Create › Create Worker** → nombre `auna-ia` → **Deploy**.
-3. **Edit code**: borra el ejemplo, pega [`worker/auna-ia.js`](../worker/auna-ia.js) y pulsa **Deploy**.
-4. **Settings › Variables and Secrets**:
-   - `GROQ_API_KEY` (tipo **Secret**): tu clave de https://console.groq.com (empieza por `gsk_`).
-   - `FIREBASE_PROJECT_ID` (tipo **Text**): el `projectId` de Firebase.
-5. Copia la dirección del Worker (`https://auna-ia.<tu-cuenta>.workers.dev`) en `AI_URL` de `web/config.js` y de `CloudConfig.kt`.
+**A. Crear la cuenta**
+1. Abre https://dash.cloudflare.com/sign-up, escribe tu correo y una contraseña y pulsa **Sign up**.
+2. Confirma el correo que te envían (enlace **Verify email**). Si te pregunta qué quieres hacer o te ofrece añadir un dominio, sáltalo: no hace falta dominio.
 
-## 3. GitHub Pages
+**B. Crear el Worker**
+1. En el menú de la izquierda, abre **Compute (Workers)** › **Workers & Pages** (en algunas cuentas se llama solo **Workers & Pages**).
+2. Pulsa **Create** (o **Create application**). Si salen pestañas, elige **Workers** y luego **Start with Hello World!** (o **Create Worker**).
+3. En **Worker name** escribe `auna-ia` y pulsa **Deploy**. Espera a «Success! Your project is deployed».
+4. Pulsa **Edit code** (o **Continue to project › Edit code**). Se abre un editor con un archivo `worker.js` que dice «Hello World».
+5. Haz clic dentro del editor, selecciónalo todo (**Cmd + A**) y bórralo.
+6. Abre [`worker/auna-ia.js`](../worker/auna-ia.js) en GitHub (botón **Raw**), selecciona todo (**Cmd + A**), cópialo y pégalo en el editor.
+7. Pulsa **Deploy** (arriba a la derecha) y confirma. Vuelve atrás con la flecha **←** junto al nombre `auna-ia`.
 
-1. En https://github.com/paolagdiazz/auna › **Settings › Pages › Build and deployment › Source**: elige **GitHub Actions**.
-2. Cada cambio en `web/` se publica solo en https://paolagdiazz.github.io/auna/ (pestaña **Actions** para ver el progreso).
+**C. Guardar la clave de Groq y el proyecto de Firebase**
+1. Dentro del Worker `auna-ia`, abre la pestaña **Settings** › **Variables and Secrets** › **+ Add**.
+2. Primera variable:
+   - **Type**: `Secret`
+   - **Variable name**: `GROQ_API_KEY`
+   - **Value**: tu clave de Groq (https://console.groq.com › **API Keys**; empieza por `gsk_`).
+3. Pulsa **+ Add variable** (o **Add** otra vez) para la segunda:
+   - **Type**: `Text`
+   - **Variable name**: `FIREBASE_PROJECT_ID`
+   - **Value**: el `projectId` del bloque de Firebase (lo que va entre comillas después de `projectId:`, p. ej. `auna-1a2b3`).
+4. Pulsa **Deploy** (o **Save and deploy**).
+
+**D. Copiar la dirección del Worker**
+1. En la pestaña **Settings** › **Domains & Routes** (o en la tarjeta de arriba de **Overview**) verás una dirección que termina en
+   `.workers.dev`, por ejemplo `https://auna-ia.paola.workers.dev`.
+2. **Pégamela en el chat**. Yo la pongo en la web y en la app.
+3. Comprobación opcional: ábrela en el navegador. Si dice `{"error":"Solo POST."}`, el puente funciona.
+
+## 3. GitHub Pages (publicar la web)
+
+1. Abre https://github.com/paolagdiazz/auna e inicia sesión.
+2. Arriba, en la barra de pestañas del repositorio, pulsa **⚙ Settings** (la última; si no la ves, está en el menú **···**).
+3. En el menú de la izquierda, sección **Code and automation**, pulsa **Pages**.
+4. En **Build and deployment › Source** cambia **Deploy from a branch** por **GitHub Actions**. No hace falta pulsar nada más: se guarda solo.
+5. Abre la pestaña **Actions** del repositorio. Si sale el flujo **Publicar la web** en rojo (falló porque Pages aún no estaba activado),
+   ábrelo y pulsa **Re-run all jobs**. Si no sale ninguno, avísame y lo lanzo yo con un cambio.
+6. Cuando salga en verde (1 o 2 minutos), la web estará en https://paolagdiazz.github.io/auna/
 
 ## Cómo se usa
 
