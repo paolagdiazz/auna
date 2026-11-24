@@ -1,0 +1,38 @@
+PALETA AÚNA
+
+Verde Aúna
+  HEX  #0F5132
+  RGB  (15, 81, 50)
+  CMYK (81, 0, 38, 68) (aprox.)
+  Uso  Principal · confianza
+
+Verde equilibrio
+  HEX  #2E7D5B
+  RGB  (46, 125, 91)
+  CMYK (63, 0, 27, 51) (aprox.)
+  Uso  Secundario · equilibrio
+
+Amarillo girasol
+  HEX  #FFC72C
+  RGB  (255, 199, 44)
+  CMYK (0, 22, 83, 0) (aprox.)
+  Uso  Acento · energía
+
+Menta calma
+  HEX  #D9F2E3
+  RGB  (217, 242, 227)
+  CMYK (10, 0, 6, 5) (aprox.)
+  Uso  Fondo · calma
+
+Naranja pétalo
+  HEX  #F2A007
+  RGB  (242, 160, 7)
+  CMYK (0, 34, 97, 5) (aprox.)
+  Uso  Apoyo · pétalos
+
+Crema
+  HEX  #FFF9EC
+  RGB  (255, 249, 236)
+  CMYK (0, 2, 7, 0) (aprox.)
+  Uso  Fondo tarjeta clara
+

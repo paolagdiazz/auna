@@ -1,0 +1,92 @@
+{
+  "Verde Aúna": {
+    "hex": "#0F5132",
+    "rgb": [
+      15,
+      81,
+      50
+    ],
+    "cmyk_aprox": [
+      81,
+      0,
+      38,
+      68
+    ],
+    "uso": "Principal · confianza"
+  },
+  "Verde equilibrio": {
+    "hex": "#2E7D5B",
+    "rgb": [
+      46,
+      125,
+      91
+    ],
+    "cmyk_aprox": [
+      63,
+      0,
+      27,
+      51
+    ],
+    "uso": "Secundario · equilibrio"
+  },
+  "Amarillo girasol": {
+    "hex": "#FFC72C",
+    "rgb": [
+      255,
+      199,
+      44
+    ],
+    "cmyk_aprox": [
+      0,
+      22,
+      83,
+      0
+    ],
+    "uso": "Acento · energía"
+  },
+  "Menta calma": {
+    "hex": "#D9F2E3",
+    "rgb": [
+      217,
+      242,
+      227
+    ],
+    "cmyk_aprox": [
+      10,
+      0,
+      6,
+      5
+    ],
+    "uso": "Fondo · calma"
+  },
+  "Naranja pétalo": {
+    "hex": "#F2A007",
+    "rgb": [
+      242,
+      160,
+      7
+    ],
+    "cmyk_aprox": [
+      0,
+      34,
+      97,
+      5
+    ],
+    "uso": "Apoyo · pétalos"
+  },
+  "Crema": {
+    "hex": "#FFF9EC",
+    "rgb": [
+      255,
+      249,
+      236
+    ],
+    "cmyk_aprox": [
+      0,
+      2,
+      7,
+      0
+    ],
+    "uso": "Fondo tarjeta clara"
+  }
+}
