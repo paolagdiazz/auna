@@ -103,8 +103,8 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
             ) {
                 AIcon(Icons.Sparkle, Auna.Green, 24.dp, 2.2f)
                 Column(Modifier.weight(1f)) {
-                    Txt("Claude (IA)", 17, 800)
-                    Txt(if (key.isBlank()) "Sin conectar: añade tu clave" else "Conectado", 14, 700, if (key.isBlank()) Auna.Forest else Auna.Green)
+                    Txt("IA para Hablar y Comprobar", 17, 800)
+                    Txt(if (key.isBlank()) "Sin conectar: añade tu clave" else "Conectada a ${com.auna.padres.Ai.providerName(key)}", 14, 700, if (key.isBlank()) Auna.Forest else Auna.Green)
                 }
                 AIcon(Icons.ChevronRight, Auna.Muted, 20.dp, 2.5f)
             }
@@ -119,8 +119,8 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
 
     if (keySheet) {
         EditSheet(
-            title = "Conectar Claude",
-            fields = listOf(Field("Clave de la API de Anthropic", key, "sk-ant-…", secret = true)),
+            title = "Conectar la IA",
+            fields = listOf(Field("Clave de Groq (gratis) o de Claude", key, "gsk_… o sk-ant-…", secret = true)),
             onDismiss = { if (!checking) { keySheet = false; keyMsg = null } },
             saveLabel = if (checking) "Comprobando…" else "Guardar y comprobar",
             onSave = { (k) ->
@@ -137,9 +137,10 @@ fun AjustesScreen(vm: AunaViewModel, navi: Navi) {
             deleteLabel = "Quitar la clave",
             extra = {
                 Txt(
-                    "Aúna usa Claude para ordenar lo que cuentas en «Hablar» y para contestar en «Comprueba las respuestas». " +
-                        "Consigue la clave en console.anthropic.com (API Keys). Se guarda solo en este móvil. " +
-                        "Cuando la usas, se envía a Anthropic el pasaporte del niño activo y lo que acabas de contar o preguntar.",
+                    "Aúna usa una IA para ordenar lo que cuentas en «Hablar» y para contestar en «Comprueba las respuestas». " +
+                        "Gratis: entra en console.groq.com con tu cuenta de Google, ve a API Keys › Create API Key y pega aquí la clave (empieza por gsk_). " +
+                        "También vale una clave de Claude (console.anthropic.com, de pago). La clave se guarda solo en este móvil. " +
+                        "Al usarla se envía a Groq o a Anthropic el pasaporte del niño activo y lo que acabas de contar o preguntar.",
                     14, 600, Auna.Muted, lineHeight = 1.4,
                 )
                 keyMsg?.let { Txt(it, 15, 800, Auna.Coral) }

@@ -1,54 +1,43 @@
 package com.auna.padres
 
-import com.anthropic.client.AnthropicClient
-import com.anthropic.client.okhttp.AnthropicOkHttpClient
-import com.anthropic.core.JsonValue
-import com.anthropic.errors.AnthropicIoException
-import com.anthropic.errors.AnthropicServiceException
-import com.anthropic.errors.BadRequestException
-import com.anthropic.errors.PermissionDeniedException
-import com.anthropic.errors.RateLimitException
-import com.anthropic.errors.UnauthorizedException
-import com.anthropic.models.messages.JsonOutputFormat
-import com.anthropic.models.messages.MessageCreateParams
-import com.anthropic.models.messages.OutputConfig
-import com.anthropic.models.messages.StopReason
 import com.auna.padres.data.Kid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.time.Duration
 
 /** Error que se puede enseñar tal cual a la familia. */
-class ClaudeError(message: String, val badKey: Boolean = false) : Exception(message)
+class AiError(message: String, val badKey: Boolean = false) : Exception(message)
 
 data class Organized(val findings: List<Finding>, val followUp: String?)
 
 data class Answer(val text: String, val sources: List<String>, val known: Boolean)
 
+/** Un proveedor de IA: recibe instrucciones, texto y un esquema JSON, y devuelve el JSON. */
+interface AiBackend {
+    /** Nombre para enseñar a la familia («Groq», «Claude»). */
+    val label: String
+    /** Comprueba que la clave funciona (sin gastar tokens). Lanza [AiError] si no. */
+    fun check()
+    /** Llamada bloqueante; lanza [AiError] con un mensaje claro si algo falla. */
+    fun json(system: String, user: String, schema: Map<String, Any>, maxTokens: Long): JsonObject
+    fun warmUp() {}
+}
+
 /**
- * Llamadas a Claude (API de Anthropic) con la clave que la familia guarda en Ajustes.
+ * La IA de la app. Elige el proveedor según la clave que la familia pega en Ajustes:
+ * las de Groq empiezan por «gsk_» (gratis), las de Claude por «sk-ant-».
  * Solo se envía el pasaporte del niño activo y lo que se acaba de contar o preguntar.
  */
-class Claude(apiKey: String) {
-    private val client: AnthropicClient = AnthropicOkHttpClient.builder()
-        .apiKey(apiKey)
-        .timeout(Duration.ofSeconds(90))
-        .build()
+class Ai(apiKey: String) {
+    val backend: AiBackend = if (isGroqKey(apiKey)) GroqBackend(apiKey) else ClaudeBackend(apiKey)
 
-    /** Carga por adelantado las clases del SDK (JSON y modelos) sin hacer ninguna llamada. */
-    fun warmUp() {
-        JsonOutputFormat.Schema.builder().putAdditionalProperty("type", JsonValue.from(mapOf("a" to listOf(1)))).build()
-        MessageCreateParams.builder().model(MODEL).maxTokens(1).addUserMessage("x").build()
-    }
+    fun warmUp() = backend.warmUp()
 
-    /** Comprueba que la clave funciona (no gasta tokens). */
-    suspend fun check() = call { client.models().retrieve(MODEL); Unit }
+    suspend fun check() = call { backend.check() }
 
     /** Ordena en el pasaporte lo que la familia ha contado. */
     suspend fun organize(kid: Kid, said: String, focusSectionId: String?, topic: String?): Organized = call {
@@ -117,7 +106,7 @@ class Claude(apiKey: String) {
             appendLine("Lo que ha contado la familia:")
             append("«${said.trim()}»")
         }
-        val json = ask(system, user, schema, maxTokens = 4000)
+        val json = backend.json(system, user, schema, maxTokens = 4000)
         val findings = mutableListOf<Finding>()
         json["items"]?.jsonArray?.forEach { el ->
             val o = el.jsonObject
@@ -161,7 +150,7 @@ class Claude(apiKey: String) {
             Si hay riesgo para su salud, recuerda llamar al 112 y a la familia.
         """.trimIndent()
         val user = "Pasaporte:\n${Speaker.passportText(kid)}\n\nPregunta: «${question.trim()}»"
-        val json = ask(system, user, schema, maxTokens = 2000)
+        val json = backend.json(system, user, schema, maxTokens = 2000)
         Answer(
             text = json.str("respuesta"),
             sources = json["fuentes"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList(),
@@ -169,62 +158,24 @@ class Claude(apiKey: String) {
         )
     }
 
-    private fun ask(system: String, user: String, schema: Map<String, Any>, maxTokens: Long): JsonObject {
-        val format = JsonOutputFormat.builder()
-            .schema(JsonOutputFormat.Schema.builder().apply { schema.forEach { (k, v) -> putAdditionalProperty(k, JsonValue.from(v)) } }.build())
-            .build()
-        fun params(withFallback: Boolean) = MessageCreateParams.builder()
-            .model(MODEL)
-            .maxTokens(maxTokens)
-            .system(system)
-            .outputConfig(OutputConfig.builder().effort(OutputConfig.Effort.LOW).format(format).build())
-            .apply {
-                if (withFallback) {
-                    // Si el modelo rechaza la petición, la API la reintenta sola con otro modelo.
-                    putAdditionalHeader("anthropic-beta", "server-side-fallback-2026-07-01")
-                    putAdditionalBodyProperty("fallbacks", JsonValue.from("default"))
-                }
-            }
-            .addUserMessage(user)
-            .build()
-        val msg = try {
-            client.messages().create(params(withFallback = true))
-        } catch (e: BadRequestException) {
-            // Por si esta cuenta no admite la opción de respaldo: se repite una vez sin ella.
-            client.messages().create(params(withFallback = false))
-        }
-        val stop = msg.stopReason().orElse(null)
-        if (stop == StopReason.REFUSAL) throw ClaudeError("Claude no ha podido responder a esto. Prueba a decirlo de otra forma.")
-        if (stop == StopReason.MAX_TOKENS) throw ClaudeError("La respuesta era demasiado larga. Prueba con algo más corto.")
-        val text = msg.content().mapNotNull { b -> b.text().map { it.text() }.orElse(null) }.joinToString("")
-        return runCatching { Json.parseToJsonElement(text).jsonObject }
-            .getOrElse { throw ClaudeError("No he entendido la respuesta de Claude. Vuelve a intentarlo.") }
-    }
-
     private suspend fun <T> call(block: () -> T): T = withContext(Dispatchers.IO) {
         try {
             block()
-        } catch (e: ClaudeError) {
+        } catch (e: AiError) {
             throw e
-        } catch (e: UnauthorizedException) {
-            throw ClaudeError("La clave de Claude no es válida. Revísala en Ajustes.", badKey = true)
-        } catch (e: PermissionDeniedException) {
-            throw ClaudeError("Esta clave de Claude no tiene permiso. Revísala en Ajustes.", badKey = true)
-        } catch (e: RateLimitException) {
-            throw ClaudeError("Claude está muy ocupado ahora mismo. Espera un momento y vuelve a intentarlo.")
-        } catch (e: AnthropicServiceException) {
-            throw ClaudeError("Claude ha dado un error (${e.statusCode()}). Vuelve a intentarlo.")
-        } catch (e: AnthropicIoException) {
-            throw ClaudeError("No hay conexión a internet. Revisa la conexión y vuelve a intentarlo.")
+        } catch (e: java.io.IOException) {
+            throw AiError("No hay conexión a internet. Revisa la conexión y vuelve a intentarlo.")
         } catch (e: Exception) {
-            throw ClaudeError("No se ha podido hablar con Claude. Revisa la conexión y vuelve a intentarlo.")
+            throw AiError("No se ha podido hablar con ${backend.label}. Vuelve a intentarlo.")
         }
     }
 
     companion object {
-        const val MODEL = "claude-opus-5-5"
+        fun isGroqKey(key: String) = key.trim().startsWith("gsk_")
 
-        /** «sección/apartado» → nombre legible, para que Claude sepa dónde va cada cosa. */
+        fun providerName(key: String) = if (isGroqKey(key)) "Groq" else "Claude"
+
+        /** «sección/apartado» → nombre legible, para que la IA sepa dónde va cada cosa. */
         fun targets(kid: Kid): Map<String, String> = buildMap {
             kid.passport.sections.forEach { s ->
                 s.groups.forEach { g -> put("${s.id}/${g.id}", if (s.custom) s.title else "${s.title} › ${g.title}") }
@@ -233,4 +184,4 @@ class Claude(apiKey: String) {
     }
 }
 
-private fun JsonObject.str(key: String) = runCatching { this[key]!!.jsonPrimitive.content }.getOrDefault("")
+internal fun JsonObject.str(key: String) = runCatching { this[key]!!.jsonPrimitive.content }.getOrDefault("")

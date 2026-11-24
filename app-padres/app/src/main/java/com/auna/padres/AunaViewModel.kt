@@ -40,16 +40,16 @@ class AunaViewModel(app: Application) : AndroidViewModel(app) {
         voice.cancel()
     }
 
-    // ---------- Clave de Claude (solo en este móvil, fuera del JSON del pasaporte) ----------
+    // ---------- Clave de la IA: Groq (gratis) o Claude. Solo en este móvil, fuera del JSON del pasaporte ----------
     private val secrets = app.getSharedPreferences("auna_privado", android.content.Context.MODE_PRIVATE)
     val claudeKey = MutableStateFlow(secrets.getString("claude_key", "") ?: "")
-    private var cachedClaude: Pair<String, Claude>? = null
+    private var cachedClaude: Pair<String, Ai>? = null
 
-    /** Cliente de Claude reutilizado mientras no cambie la clave (crearlo es lo más lento de la primera llamada). */
-    private fun claude(): Claude? {
+    /** Cliente de IA reutilizado mientras no cambie la clave (crearlo es lo más lento de la primera llamada). */
+    private fun claude(): Ai? {
         val key = claudeKey.value.takeIf { it.isNotBlank() } ?: return null
         cachedClaude?.let { (k, c) -> if (k == key) return c }
-        return Claude(key).also { cachedClaude = key to it }
+        return Ai(key).also { cachedClaude = key to it }
     }
 
     init {
@@ -64,12 +64,12 @@ class AunaViewModel(app: Application) : AndroidViewModel(app) {
             secrets.edit().remove("claude_key").apply(); claudeKey.value = ""; return null
         }
         return try {
-            Claude(k).check()
+            Ai(k).check()
             secrets.edit().putString("claude_key", k).apply()
             claudeKey.value = k
             null
-        } catch (e: ClaudeError) {
-            if (e.badKey) "Esta clave no funciona. Cópiala otra vez desde console.anthropic.com (API Keys)." else e.message
+        } catch (e: AiError) {
+            if (e.badKey) "Esta clave no funciona. Cópiala otra vez desde console.groq.com (API Keys)." else e.message
         }
     }
 
@@ -125,7 +125,7 @@ class AunaViewModel(app: Application) : AndroidViewModel(app) {
                     pendingText = "",
                 )
                 if (state.value.readAloud && result.followUp != null) speaker.speak(result.followUp, "pregunta")
-            } catch (e: ClaudeError) {
+            } catch (e: AiError) {
                 talk.value = talk.value.copy(step = if (append) "review" else "error", error = e.message, needsKey = e.badKey)
             }
         }
@@ -166,7 +166,7 @@ class AunaViewModel(app: Application) : AndroidViewModel(app) {
         checks.value = checks.value + Check(id, q, loading = true)
         val client = claude()
         if (client == null) {
-            updateCheck(id) { it.copy(loading = false, error = "Para responder hace falta la clave de Claude.", needsKey = true) }
+            updateCheck(id) { it.copy(loading = false, error = "Para responder hace falta conectar la IA en Ajustes.", needsKey = true) }
             return
         }
         viewModelScope.launch {
@@ -174,7 +174,7 @@ class AunaViewModel(app: Application) : AndroidViewModel(app) {
                 val a = client.answer(kid, q)
                 updateCheck(id) { it.copy(loading = false, answer = a) }
                 if (state.value.readAloud) speaker.speak(a.text, "respuesta-$id")
-            } catch (e: ClaudeError) {
+            } catch (e: AiError) {
                 updateCheck(id) { it.copy(loading = false, error = e.message, needsKey = e.badKey) }
             }
         }

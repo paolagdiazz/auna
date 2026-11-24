@@ -55,7 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.auna.padres.AunaViewModel
-import com.auna.padres.Claude
+import com.auna.padres.Ai
 import com.auna.padres.Finding
 import com.auna.padres.KeptFinding
 import com.auna.padres.TalkUi
@@ -176,9 +176,9 @@ private fun KeyNeeded(onKey: () -> Unit, onRetry: (() -> Unit)?) {
         Modifier.fillMaxWidth().card(Auna.CoralBg, 20.dp).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Txt("Falta conectar Claude", 18, 900, Auna.Coral)
+        Txt("Falta conectar la IA", 18, 900, Auna.Coral)
         Txt(
-            "Para ordenar lo que cuentas, Aúna usa Claude. Añade tu clave de Claude en Ajustes (solo una vez). Lo que has contado no se pierde.",
+            "Para ordenar lo que cuentas, Aúna usa una IA. Pega tu clave en Ajustes › IA (solo una vez; la de Groq es gratis). Lo que has contado no se pierde.",
             15, 700, Auna.Coral, lineHeight = 1.35,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -512,7 +512,7 @@ private fun FindingCard(kf: KeptFinding, onToggle: () -> Unit, onEdit: () -> Uni
 private fun FindingEditor(kid: Kid, f: Finding, onDismiss: () -> Unit, onSave: (Finding) -> Unit) {
     when (f) {
         is Finding.Item -> {
-            val targets = Claude.targets(kid)
+            val targets = Ai.targets(kid)
             var target by remember { mutableStateOf("${f.sectionId}/${f.groupId}") }
             EditSheet(
                 title = "Editar",

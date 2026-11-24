@@ -23,16 +23,20 @@ App Android (Kotlin + Jetpack Compose, Material 3) que implementa el diseño «A
 - `ui/Components.kt`, `ui/Editors.kt`, `ui/KidEditor.kt`: botones, campos, fotos y las hojas para crear y editar.
 - `ui/AunaApp.kt`: navegación (las pantallas de detalle entran deslizando) y barra inferior.
 - `data/`: modelo del pasaporte (todo editable, progreso calculado), datos de ejemplo y guardado local.
-- `Claude.kt`: llamadas a Claude (SDK oficial `anthropic-java`) con salida JSON estructurada.
+- `Ai.kt`, `GroqBackend.kt`, `ClaudeBackend.kt`: la IA (Groq o Claude) con salida JSON estructurada.
 - `VoiceInput.kt`: reconocimiento de voz de Android en español. `Speaker.kt`: lectura en voz alta.
 - `QrCard.kt`: QR real con la ficha de emergencia, impresión y descarga de la tarjeta.
 
-## Claude (IA)
+## IA (Groq gratis o Claude)
 
-«Hablar» y «Comprueba las respuestas» usan Claude (`claude-opus-5-5`). Cada familia pega su clave de la API
-de Anthropic en **Ajustes › Claude (IA)**; se comprueba al guardarla y se queda solo en el móvil (no va en el
-repositorio ni en copias de seguridad). Al usarlo se envían a Anthropic el pasaporte del niño activo y lo que
-se acaba de contar o preguntar.
+«Hablar» y «Comprueba las respuestas» usan una IA. En **Ajustes › IA para Hablar y Comprobar** la familia pega una clave:
+
+- **Groq** (gratis, sin tarjeta): console.groq.com › API Keys. La clave empieza por `gsk_`. Modelo `openai/gpt-oss-120b`.
+- **Claude** (de pago): console.anthropic.com. La clave empieza por `sk-ant-`. Modelo `claude-opus-5-5`.
+
+La app reconoce el proveedor por la clave, la comprueba al guardarla y la guarda solo en el móvil (no va en el
+repositorio ni en copias de seguridad). Al usarla se envían a Groq o a Anthropic el pasaporte del niño activo
+y lo que se acaba de contar o preguntar. Código: `Ai.kt` (prompts y esquemas comunes), `GroqBackend.kt`, `ClaudeBackend.kt`.
 
 ## Datos
 
@@ -45,7 +49,7 @@ las propuestas de profes son de ejemplo hasta que exista el servidor (con la web
 ## Permisos
 
 - Micrófono: para «Hablar» y dictar preguntas.
-- Internet: para Claude y el reconocimiento de voz.
+- Internet: para la IA y el reconocimiento de voz.
 
 ## Compilar
 

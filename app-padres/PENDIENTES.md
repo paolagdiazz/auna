@@ -81,3 +81,10 @@ Revisión pantalla a pantalla. `[x]` = arreglado y comprobado en el emulador.
 9. **APK de prueba:** versión optimizada (`release`, con R8) firmada con la clave de desarrollo, para que se instale encima de la v0.1. Pasa de 19,4 MB a 3,1 MB y arranca más rápido. Para Play Store hará falta una clave propia.
 10. **Release de GitHub:** la versión buena es la etiqueta `v0.2.1` (la `v0.2` se quedó en el commit anterior, sin R8). El APK y las notas están en la carpeta `release/`, junto al repo.
 11. **Claude se prepara al abrir la app** (si hay clave), para que la primera respuesta no tarde.
+
+## v0.3: IA gratis con Groq
+
+12. **La conexión con Claude no te funcionaba**, así que la app admite también **Groq** (gratis, sin tarjeta). Elegí Groq porque su documentación es clara y estable, el plan gratuito da de sobra para unas 25 pruebas, y admite salida JSON estricta. Gemini también tiene plan gratis, pero Google acaba de cambiar su API y su documentación no aclara qué modelos son gratis.
+13. **Una sola casilla para la clave:** la app sabe si es de Groq (`gsk_…`) o de Claude (`sk-ant-…`). Claude sigue funcionando si algún día lo usas.
+14. **Modelo de Groq:** `openai/gpt-oss-120b`, el modelo de producción más capaz con salida JSON estricta. Se le pide un razonamiento corto y respuestas acotadas, para no pasar del límite gratuito por minuto. Si Groq no acepta el formato estricto, la app repite la petición una vez en modo JSON simple.
+15. **Sin comprobar todavía con una clave real:** en el emulador la app llega a Groq y avisa bien si la clave es falsa. La primera prueba con tu clave confirma el resto.
