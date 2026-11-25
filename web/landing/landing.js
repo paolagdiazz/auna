@@ -65,6 +65,11 @@ const VALIDADORES = [
   }), { threshold: 0.6 }).observe(sec);
 })();
 
+// Cada diapositiva recibe la clase «play» cuando ocupa casi toda la pantalla (para sus animaciones).
+document.querySelectorAll("main > section.slide").forEach((sec) => new IntersectionObserver((es, o) => es.forEach((e) => {
+  if (e.isIntersecting) { sec.classList.add("play"); o.disconnect(); }
+}), { threshold: 0.6 }).observe(sec));
+
 // Cabecera: se esconde al bajar y vuelve al subir. Marca la sección activa.
 const cabecera = document.querySelector(".top");
 let lastY = scrollY;
