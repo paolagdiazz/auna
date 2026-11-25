@@ -32,7 +32,7 @@ if (antes) new IntersectionObserver((es, o) => es.forEach((e) => {
 
 // Mapa de validación. Para añadir a alguien, copia una línea de ejemplo y quita las //.
 // lado: dónde sale el bocadillo respecto al pin ("arriba", "abajo", "izq" o "der").
-// Las coordenadas se sacan en Google Maps: clic derecho sobre el sitio y se copian (lat, lon).
+// Vale cualquier sitio de la provincia. Las coordenadas se sacan en Google Maps: clic derecho sobre el sitio y se copian (lat, lon).
 const VALIDADORES = [
   // { lat: 36.7213, lon: -4.4214, frase: "Por fin no tengo que repetirlo todo cada curso.", quien: "Madre de Marco", lado: "arriba" },
 ];
@@ -40,9 +40,11 @@ const VALIDADORES = [
   const caja = document.getElementById("pines");
   const vacio = document.getElementById("mapa-vacio");
   if (!caja) return;
-  // Misma proyección que el dibujo del mapa (ver viewBox 1000 x 702).
-  const LON0 = -4.55, LON1 = -4.31, LAT1 = 36.77, W = 1000, H = 702;
-  const C = Math.cos(((36.635 + LAT1) / 2) * Math.PI / 180), K = W / ((LON1 - LON0) * C);
+  // Misma proyección que el dibujo: los límites del mapa vienen en el atributo data-box del SVG.
+  const svg = document.querySelector(".mapa-svg");
+  const [LON0, LON1, LAT0, LAT1] = svg.dataset.box.split(",").map(Number);
+  const [, , W, H] = svg.getAttribute("viewBox").split(" ").map(Number);
+  const C = Math.cos(((LAT0 + LAT1) / 2) * Math.PI / 180), K = W / ((LON1 - LON0) * C);
   const pinSvg = '<svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 37c-1-4-13-13-13-22a13 13 0 0 1 26 0c0 9-12 18-13 22z"/><circle cx="15" cy="15" r="5" fill="#fff"/></svg>';
   VALIDADORES.forEach((v, i) => {
     const x = (v.lon - LON0) * C * K, y = (LAT1 - v.lat) * K;
