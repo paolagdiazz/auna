@@ -30,6 +30,39 @@ if (antes) new IntersectionObserver((es, o) => es.forEach((e) => {
   if (e.isIntersecting) { antes.classList.add("play"); o.disconnect(); }
 }), { threshold: 0.6 }).observe(antes);
 
+// Mapa de validación. Para añadir a alguien, copia una línea de ejemplo y quita las //.
+// lado: dónde sale el bocadillo respecto al pin ("arriba", "abajo", "izq" o "der").
+// Las coordenadas se sacan en Google Maps: clic derecho sobre el sitio y se copian (lat, lon).
+const VALIDADORES = [
+  // { lat: 36.7213, lon: -4.4214, frase: "Por fin no tengo que repetirlo todo cada curso.", quien: "Madre de Marco", lado: "arriba" },
+];
+(function mapa() {
+  const caja = document.getElementById("pines");
+  const vacio = document.getElementById("mapa-vacio");
+  if (!caja) return;
+  // Misma proyección que el dibujo del mapa (ver viewBox 1000 x 702).
+  const LON0 = -4.55, LON1 = -4.31, LAT1 = 36.77, W = 1000, H = 702;
+  const C = Math.cos(((36.635 + LAT1) / 2) * Math.PI / 180), K = W / ((LON1 - LON0) * C);
+  const pinSvg = '<svg viewBox="0 0 30 38" aria-hidden="true"><path d="M15 37c-1-4-13-13-13-22a13 13 0 0 1 26 0c0 9-12 18-13 22z"/><circle cx="15" cy="15" r="5" fill="#fff"/></svg>';
+  VALIDADORES.forEach((v, i) => {
+    const x = (v.lon - LON0) * C * K, y = (LAT1 - v.lat) * K;
+    const pin = document.createElement("div");
+    pin.className = `pin ${v.lado || "arriba"}`;
+    pin.style.left = `${(x / W) * 100}%`;
+    pin.style.top = `${(y / H) * 100}%`;
+    pin.style.setProperty("--d", `${0.3 + i * 0.6}s`);
+    pin.innerHTML = `<span class="pin-punto">${pinSvg}</span><div class="bocadillo"><q></q><span></span></div>`;
+    pin.querySelector("q").textContent = v.frase;
+    pin.querySelector(".bocadillo span").textContent = v.quien || "";
+    caja.appendChild(pin);
+  });
+  vacio.hidden = VALIDADORES.length > 0;
+  const sec = document.getElementById("mapa");
+  new IntersectionObserver((es, o) => es.forEach((e) => {
+    if (e.isIntersecting) { sec.classList.add("play"); o.disconnect(); }
+  }), { threshold: 0.6 }).observe(sec);
+})();
+
 // Cabecera: se esconde al bajar y vuelve al subir. Marca la sección activa.
 const cabecera = document.querySelector(".top");
 let lastY = scrollY;
