@@ -3,21 +3,268 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Aúna</title>
-<meta name="description" content="Aúna: el pasaporte que te entiende. Para familiares, profes y monitores.">
+<title>Aúna · El pasaporte que te entiende</title>
+<meta name="description" content="Aúna ayuda a las familias de niños y niñas que no hablan a contar cómo se comunican, para que profes, monitores y sanitarios les entiendan.">
 <meta name="theme-color" content="#F3F8F5">
-<link rel="icon" href="img/icono.png">
-<link rel="apple-touch-icon" href="img/icono.png">
+<link rel="icon" href="landing/img/icono.png">
+<link rel="apple-touch-icon" href="landing/img/icono.png">
+<meta property="og:title" content="Aúna · El pasaporte que te entiende">
+<meta property="og:description" content="Para que quien cuida a un niño que no habla le entienda desde el primer día.">
+<meta property="og:image" content="landing/img/icono.png">
+<script>
+  // Los enlaces de las tarjetas QR antiguas (…/auna/#/c/…) y de la web siguen funcionando: se pasan a la app web.
+  if (location.hash.startsWith("#/")) location.replace("app/" + location.hash);
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="landing/landing.css">
 </head>
 <body>
-<div id="app" class="app">
-  <div class="screen center" style="justify-content:center"><img src="img/girasol.png" alt="" width="88" height="88"><p class="w8 muted">Cargando…</p></div>
-</div>
-<noscript><p style="padding:20px">Aúna necesita JavaScript.</p></noscript>
-<script type="module" src="js/app.js"></script>
+
+<a class="skip" href="#app">Saltar al contenido</a>
+
+<header class="top" id="top">
+  <a href="#top" class="brand" aria-label="Aúna, inicio"><img src="landing/img/logo.png" alt="Aúna" width="132" height="46"></a>
+  <nav class="menu" aria-label="Secciones">
+    <a href="#app">La app</a>
+    <a href="#somos">Quiénes somos</a>
+    <a href="#logros">Qué queremos</a>
+    <a href="#ayuda">A quién ayuda</a>
+    <a href="#contacto">Contacto</a>
+  </nav>
+  <div class="top-actions">
+    <a class="btn ghost small hide-sm" href="app/">Entrar</a>
+    <a class="btn small" href="#descargar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar</a>
+    <button class="burger" aria-label="Abrir el menú" aria-expanded="false" aria-controls="menu-movil"><span></span><span></span></button>
+  </div>
+</header>
+<nav class="menu-movil" id="menu-movil" aria-label="Secciones" hidden>
+  <a href="#app">La app</a><a href="#somos">Quiénes somos</a><a href="#logros">Qué queremos</a><a href="#ayuda">A quién ayuda</a><a href="#contacto">Contacto</a><a href="app/">Entrar en la web</a>
+</nav>
+
+<!-- Hilo de puntos que se dibuja al bajar y une las secciones -->
+<svg class="hilo" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 100 1000"><path id="hilo-path" d="M50 0 C 90 80, 10 160, 50 240 S 90 400, 50 480 S 10 640, 50 720 S 90 880, 50 1000"/></svg>
+
+<main>
+  <!-- PORTADA -->
+  <section class="hero">
+    <div class="hero-text">
+      <p class="kicker reveal">Para familias de niños y niñas que no hablan</p>
+      <h1 class="lines"><span>Un pasaporte</span><span>que <em>te entiende</em>.</span></h1>
+      <p class="lead reveal">Aúna convierte lo que la familia sabe —cómo dice sí y no, qué le calma, qué significa cada gesto— en un pasaporte que profes, monitores y sanitarios entienden al momento.</p>
+      <div class="cta reveal">
+        <a class="btn" href="#app">Descubre la app</a>
+        <a class="btn outline" href="#descargar">Descargar</a>
+      </div>
+    </div>
+    <div class="hero-phone">
+      <div class="halo" aria-hidden="true"><div class="petalos"></div></div>
+      <div class="phone tilt"><img src="landing/img/inicio.jpg" alt="Pantalla de inicio de la app Aúna con el pasaporte de Marco" width="405" height="900"></div>
+      <span class="float f1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span>
+      <span class="float f2" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/></svg></span>
+      <span class="float f3" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>
+      <span class="float f4" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span>
+    </div>
+    <a class="scroll-hint" href="#frase" aria-label="Bajar"><span></span>Desliza</a>
+  </section>
+
+  <!-- FRASE -->
+  <section class="frase" id="frase">
+    <p class="lines big"><span>Marco no habla.</span><span>Pero se comunica.</span><span>Lo difícil es <em>que le entiendan</em>.</span></p>
+  </section>
+
+  <!-- 1 · LA APP -->
+  <section class="app" id="app">
+    <header class="sec-head">
+      <p class="kicker reveal">1 · La app</p>
+      <h2 class="lines"><span>Así funciona Aúna</span></h2>
+      <p class="reveal">Seis pasos sencillos para que quien cuida entienda a tu hijo o hija.</p>
+    </header>
+    <div class="scrolly">
+      <div class="scrolly-phone" aria-hidden="true">
+        <div class="phone">
+          <img class="screen on" data-step="1" src="landing/img/revisar.jpg" alt="">
+          <img class="screen" data-step="2" src="landing/img/pasaporte.jpg" alt="">
+          <img class="screen" data-step="3" src="landing/img/comprueba.jpg" alt="">
+          <img class="screen" data-step="4" src="landing/img/accesos.jpg" alt="">
+          <img class="screen" data-step="5" src="landing/img/qr.jpg" alt="">
+          <img class="screen" data-step="6" src="landing/img/webcard.jpg" alt="">
+        </div>
+        <ol class="dots"><li class="on"></li><li></li><li></li><li></li><li></li><li></li></ol>
+      </div>
+      <div class="steps">
+        <article class="step" data-step="1">
+          <span class="num">01</span>
+          <h3>Habla y lo ordenamos</h3>
+          <p>Cuenta cómo es tu hijo como se lo contarías a una amiga, hablando o escribiendo. La IA lo ordena en su pasaporte y tú revisas cada cosa antes de guardarla.</p>
+          <ul class="chips"><li>Señales</li><li>Me gusta</li><li>Me calma</li></ul>
+          <img class="step-img" src="landing/img/revisar.jpg" alt="Aúna ha entendido tres cosas nuevas para el pasaporte de Marco" loading="lazy">
+        </article>
+        <article class="step" data-step="2">
+          <span class="num">02</span>
+          <h3>Su pasaporte, siempre al día</h3>
+          <p>Cómo dice sí y no, qué significa cada gesto, qué le calma, qué come y qué hacer si tiene una crisis. Todo se puede cambiar en un momento y escuchar en voz alta.</p>
+          <img class="step-img" src="landing/img/pasaporte.jpg" alt="Pasaporte de Marco con sus secciones" loading="lazy">
+        </article>
+        <article class="step" data-step="3">
+          <span class="num">03</span>
+          <h3>Comprueba las respuestas</h3>
+          <p>Pregunta como si fueras la profe —«¿cómo sé si le duele algo?»— y mira qué contestaría Aúna. Si algo no está bien, lo corriges hablando.</p>
+          <img class="step-img" src="landing/img/comprueba.jpg" alt="Respuesta de Aúna a la pregunta de la profe" loading="lazy">
+        </article>
+        <article class="step" data-step="4">
+          <span class="num">04</span>
+          <h3>Tú decides quién lo ve</h3>
+          <p>Profes, monitores o abuelos piden acceso con una nota. Tú eliges si lo ven, durante cuánto tiempo y si pueden proponer cambios. Y ves quién lo ha consultado.</p>
+          <img class="step-img" src="landing/img/accesos.jpg" alt="Accesos de Marco con la profe Laura" loading="lazy">
+        </article>
+        <article class="step" data-step="5">
+          <span class="num">05</span>
+          <h3>Una tarjeta para emergencias</h3>
+          <p>Su tarjeta lleva un QR. Quien lo escanea ve lo imprescindible para ayudarle, puede llamar a su familia y enviaros su ubicación.</p>
+          <img class="step-img" src="landing/img/qr.jpg" alt="Tarjeta QR de Marco" loading="lazy">
+        </article>
+        <article class="step" data-step="6">
+          <span class="num">06</span>
+          <h3>Familia y cole, conectados</h3>
+          <p>Desde la web, cada persona ve lo esencial, usa sus pictos y pregunta a Aúna. Lo que observan en clase os llega como propuesta: vosotros decidís si se añade.</p>
+          <img class="step-img" src="landing/img/webcard.jpg" alt="Página de Marco en la web de Aúna" loading="lazy">
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · QUIÉNES SOMOS -->
+  <section class="somos" id="somos">
+    <header class="sec-head">
+      <p class="kicker reveal">2 · Quiénes somos</p>
+      <h2 class="lines"><span>Aúna: <em>aunar</em> a quien le cuida</span></h2>
+    </header>
+    <div class="somos-grid">
+      <div class="nombre card reveal">
+        <img src="landing/img/girasol.png" alt="" width="96" height="96">
+        <p><strong>Aunar</strong> es juntar, poner de acuerdo. Aúna junta a la familia, el cole y quien cuida alrededor de lo que el niño necesita.</p>
+        <p class="placeholder">[Por qué el girasol: cuéntalo aquí.]</p>
+      </div>
+      <div class="mv">
+        <div class="card mint reveal"><h3>Misión</h3><p>Que cada niño o niña que no habla sea entendido por quien le cuida, desde el primer día.</p></div>
+        <div class="card green reveal"><h3>Visión</h3><p>Un mundo en el que no hablar no sea una barrera para que te entiendan.</p></div>
+      </div>
+    </div>
+    <h3 class="sub reveal">Nuestros valores</h3>
+    <ul class="valores">
+      <li class="card reveal"><strong>La familia decide</strong><span>Nada se comparte sin su permiso.</span></li>
+      <li class="card reveal"><strong>Sencillez</strong><span>Para usar en dos minutos, sin tecnicismos.</span></li>
+      <li class="card reveal"><strong>Respeto</strong><span>Cada niño se comunica a su manera.</span></li>
+      <li class="card reveal"><strong>Privacidad</strong><span>Lo de salud se queda en la familia.</span></li>
+      <li class="card reveal"><strong>Seguridad</strong><span>Lo imprescindible, a mano en una emergencia.</span></li>
+      <li class="card reveal"><strong>Gratuidad</strong><span>Sin coste para las familias.</span></li>
+    </ul>
+    <h3 class="sub reveal">El equipo</h3>
+    <ul class="equipo">
+      <li class="reveal"><span class="av">?</span><strong class="placeholder">[Nombre]</strong><span class="placeholder">[Rol]</span></li>
+      <li class="reveal"><span class="av">?</span><strong class="placeholder">[Nombre]</strong><span class="placeholder">[Rol]</span></li>
+      <li class="reveal"><span class="av">?</span><strong class="placeholder">[Nombre]</strong><span class="placeholder">[Rol]</span></li>
+      <li class="reveal"><span class="av">?</span><strong class="placeholder">[Nombre]</strong><span class="placeholder">[Rol]</span></li>
+    </ul>
+  </section>
+
+  <!-- 3 · QUÉ QUEREMOS LOGRAR -->
+  <section class="logros" id="logros">
+    <header class="sec-head">
+      <p class="kicker reveal">3 · Qué queremos lograr</p>
+      <h2 class="lines"><span>Que entenderle</span><span>no dependa <em>de la suerte</em></span></h2>
+      <p class="reveal">Que cualquier persona que cuide a un niño que no habla sepa qué hacer, aunque sea su primer día.</p>
+    </header>
+    <ol class="ruta">
+      <li class="reveal"><span class="n">1</span><strong>Hoy</strong><p>App para familias (Android) y web para profes y familiares, ya conectadas. Datos de ejemplo.</p></li>
+      <li class="reveal"><span class="n">2</span><strong class="placeholder">[Siguiente paso]</strong><p class="placeholder">[Por ejemplo: piloto con un colegio o una asociación.]</p></li>
+      <li class="reveal"><span class="n">3</span><strong class="placeholder">[Después]</strong><p class="placeholder">[Qué viene luego.]</p></li>
+      <li class="reveal"><span class="n">4</span><strong class="placeholder">[A largo plazo]</strong><p class="placeholder">[La meta.]</p></li>
+    </ol>
+    <ul class="principios">
+      <li class="card reveal"><strong>Lo decide la familia</strong><span>Quién ve el pasaporte, cuánto tiempo y qué puede proponer.</span></li>
+      <li class="card reveal"><strong>Respuestas honestas</strong><span>Aúna solo responde con lo que la familia ha contado. Si no lo sabe, lo dice.</span></li>
+      <li class="card reveal"><strong>Lista para una emergencia</strong><span>La tarjeta QR funciona en cualquier móvil, sin instalar nada.</span></li>
+      <li class="card reveal"><strong>Hecha con familias</strong><span class="placeholder">[Con quién la estáis probando.]</span></li>
+    </ul>
+  </section>
+
+  <!-- 4 · A QUIÉN AYUDA -->
+  <section class="ayuda" id="ayuda">
+    <header class="sec-head">
+      <p class="kicker reveal">4 · A quién ayuda</p>
+      <div class="stat reveal"><span class="big-n placeholder">[XX]</span><p class="placeholder">[Dato: cuántos niños y niñas no hablan o se comunican de otra forma, y su fuente.]</p></div>
+    </header>
+    <ul class="quien">
+      <li class="card reveal"><strong>Familias</strong><span>Contar una vez lo que siempre tenéis que repetir.</span></li>
+      <li class="card reveal"><strong>Niños y niñas que no hablan</strong><span>Que les entiendan en el cole, en el respiro o en urgencias.</span></li>
+      <li class="card reveal"><strong>Profes y monitores</strong><span>Saber qué hacer desde el primer día, sin adivinar.</span></li>
+      <li class="card reveal"><strong>Sanitarios y emergencias</strong><span>Lo imprescindible, al escanear su tarjeta.</span></li>
+    </ul>
+
+    <div class="demo card reveal" aria-labelledby="demo-t">
+      <h3 id="demo-t">¿Qué quiere decir Marco?</h3>
+      <p class="muted">Toca lo que hace y mira lo que su familia ha contado.</p>
+      <div class="demo-chips" role="group" aria-label="Lo que hace Marco">
+        <button aria-pressed="true" data-i="0">Se tira de la oreja y llora</button>
+        <button aria-pressed="false" data-i="1">Se tapa los oídos y se ríe</button>
+        <button aria-pressed="false" data-i="2">Te lleva a la nevera</button>
+        <button aria-pressed="false" data-i="3">Da palmas mirando la puerta</button>
+      </div>
+      <div class="demo-out" aria-live="polite">
+        <img src="landing/img/girasol.png" alt="" width="64" height="64">
+        <div><p class="sig" id="demo-sig">Le duele algo</p><p id="demo-hacer">Enséñale los pictos del cuerpo y avisa a su madre.</p></div>
+      </div>
+      <p class="tiny muted">Ejemplo con datos de muestra.</p>
+    </div>
+  </section>
+
+  <!-- DESCARGAR -->
+  <section class="descargar" id="descargar">
+    <div class="card green big-cta">
+      <h2 class="lines"><span>Que le entiendan</span><span>no debería ser <em>un reto</em>.</span></h2>
+      <p class="reveal">Aúna nace para que la familia lo cuente una vez y quien cuida lo entienda siempre. Descárgala y crea su pasaporte hoy.</p>
+      <div class="cta reveal">
+        <a class="btn yellow" href="https://github.com/paolagdiazz/auna/releases/latest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar para Android</a>
+        <a class="btn outline-white" href="app/">Soy profe o familiar</a>
+      </div>
+      <p class="tiny reveal">Solo para Android (archivo .apk). Al instalarla, el móvil puede pedirte permitir apps de origen desconocido.</p>
+    </div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="contacto" id="contacto">
+    <header class="sec-head">
+      <p class="kicker reveal">5 · Contacto</p>
+      <h2 class="lines"><span>Hablemos</span></h2>
+      <p class="reveal">¿Eres una familia, un colegio, una asociación o un centro de salud? Queremos construir Aúna contigo.</p>
+    </header>
+    <div class="contacto-grid">
+      <dl class="datos reveal">
+        <div><dt>Correo</dt><dd class="placeholder" id="correo-txt">[correo de contacto]</dd></div>
+        <div><dt>Ciudad</dt><dd class="placeholder">[ciudad]</dd></div>
+        <div><dt>Colabora</dt><dd>Familias, colegios, asociaciones y profesionales de la salud</dd></div>
+      </dl>
+      <form class="form card reveal" id="form">
+        <label>Nombre<input name="nombre" required autocomplete="name"></label>
+        <label>Correo electrónico<input name="correo" type="email" required autocomplete="email"></label>
+        <label>Mensaje<textarea name="mensaje" rows="5" required></textarea></label>
+        <label class="check"><input type="checkbox" required> He leído la política de privacidad.</label>
+        <button class="btn" type="submit">Enviar mensaje</button>
+        <p class="form-note" id="form-note" role="status"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <img src="landing/img/logo.png" alt="Aúna" width="120" height="42">
+  <p>Pictogramas de <a href="https://arasaac.org">ARASAAC</a> (CC BY-NC-SA) en la web. Fotos de ejemplo.</p>
+  <p><a href="app/">Entrar en la web</a> · <a href="https://github.com/paolagdiazz/auna">Código</a></p>
+</footer>
+
+<script src="landing/landing.js" defer></script>
 </body>
 </html>

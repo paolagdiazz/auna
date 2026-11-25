@@ -68,8 +68,8 @@ class Ai(val backend: AiBackend) {
                         "additionalProperties" to false,
                         "required" to listOf("hago", "significa", "hacer"),
                         "properties" to mapOf(
-                            "hago" to mapOf("type" to "string"),
-                            "significa" to mapOf("type" to "string"),
+                            "hago" to mapOf("type" to "string", "description" to "La conducta, en primera persona: «Me froto la tripa y lloro»."),
+                            "significa" to mapOf("type" to "string", "description" to "Lo que quiere decir: «Tengo gases»."),
                             "hacer" to mapOf("type" to "string", "description" to "Vacío si la familia no lo ha dicho."),
                         ),
                     ),
@@ -90,6 +90,10 @@ class Ai(val backend: AiBackend) {
             - Las conductas con significado («cuando se tira de la oreja es que le duele algo») van en «senales», no en «items».
             - Escribe en español de España, sencillo, sin diagnósticos que la familia no haya dicho.
             - Si lo contado no aporta nada para el pasaporte, devuelve las listas vacías.
+            - Cada cosa va en un solo sitio. «senales» es para «cuando hace X significa Y»: «hago» = la conducta en primera persona, «significa» = lo que quiere decir, «hacer» = qué debe hacer quien le cuida (vacío si no se dijo).
+            - Gustos, cosas que le calman o le alteran, comida y salud van en «items», con un texto corto.
+            Ejemplo. La familia dice: «Cuando se tapa los oídos es que hay mucho ruido; hay que llevarle a un sitio tranquilo. Le encanta el agua y le calma su manta.»
+            Respuesta: {"items":[{"apartado":"gusta/gusta","texto":"El agua"},{"apartado":"calma/calma","texto":"Mi manta"}],"senales":[{"hago":"Me tapo los oídos","significa":"Hay mucho ruido","hacer":"Llévame a un sitio tranquilo"}],"si":"","no":"","importante":[],"pregunta":"¿Qué le ayuda cuando hay mucho ruido?"}
         """.trimIndent()
         val focus = focusSectionId?.let { id -> kid.passport.section(id)?.title }
         val user = buildString {
@@ -113,12 +117,16 @@ class Ai(val backend: AiBackend) {
             val key = o.str("apartado")
             val text = o.str("texto").trim()
             val (sec, grp) = key.split("/", limit = 2).let { it[0] to it.getOrElse(1) { "" } }
-            if (text.isNotEmpty() && key in targets) findings += Finding.Item(sec, grp, text, targets.getValue(key))
+            if (text.isNotEmpty() && key in targets) findings += Finding.Item(sec, grp, text.replaceFirstChar { it.uppercase() }, targets.getValue(key))
         }
         json["senales"]?.jsonArray?.forEach { el ->
             val o = el.jsonObject
-            if (o.str("hago").isNotBlank() && o.str("significa").isNotBlank()) {
-                findings += Finding.NewSignal(o.str("hago").trim(), o.str("significa").trim(), o.str("hacer").trim())
+            // Los modelos gratuitos a veces ponen la conducta en «hacer»: se recupera en vez de perderla.
+            var hago = o.str("hago").trim(); var hacer = o.str("hacer").trim(); val significa = o.str("significa").trim()
+            if (hago.isBlank() && hacer.isNotBlank()) { hago = hacer; hacer = "" }
+            if (hago.isNotBlank() && significa.isNotBlank()) findings += Finding.NewSignal(hago.replaceFirstChar { it.uppercase() }, significa.replaceFirstChar { it.uppercase() }, hacer.replaceFirstChar { it.uppercase() })
+            else if (hago.isNotBlank() && targets.containsKey("gusta/gusta") && significa.isBlank() && hacer.isBlank() && hago.lowercase().contains("encant")) {
+                findings += Finding.Item("gusta", "gusta", hago, targets.getValue("gusta/gusta"))
             }
         }
         val si = json.str("si"); val no = json.str("no")
