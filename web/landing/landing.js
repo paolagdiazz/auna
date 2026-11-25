@@ -38,6 +38,7 @@ if (antes) new IntersectionObserver((es, o) => es.forEach((e) => {
 const VALIDADORES = [
   { lat: 36.5610, lon: -4.6162, nombre: "Colegio Salliver · Fuengirola", frase: "Centro privado interesado", lado: "arriba" },
   { lat: 36.7126, lon: -4.4367, nombre: "Fundación A.P.A-Andalucía · Málaga", frase: "Me parece una idea super útil tanto para el profesorado como para las familias.", cita: true, lado: "arriba" },
+  { lat: 37.0190, lon: -4.5600, nombre: "Familiar del equipo", frase: "Sería una nueva forma de vivir para ellos.", cita: true, lado: "arriba" },
   // { lat: 36.7213, lon: -4.4214, nombre: "Madre de Marco", frase: "Por fin no tengo que repetirlo todo cada curso.", cita: true, lado: "arriba" },
 ];
 (function mapa() {
