@@ -497,7 +497,7 @@ private fun SectionDetail(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Txt(sg.hago, 17, 800)
-                        Tag(sg.significa, Auna.MintStrong, Auna.DeepGreen, fontSize = 15)
+                        if (sg.significa.isNotBlank()) Tag(sg.significa, Auna.MintStrong, Auna.DeepGreen, fontSize = 15)
                         if (sg.hacer.isNotBlank()) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 AIcon(Icons.Check, Auna.Green, 18.dp, 2.6f, Modifier.padding(top = 2.dp))

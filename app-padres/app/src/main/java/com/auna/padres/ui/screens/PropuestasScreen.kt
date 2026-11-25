@@ -157,7 +157,7 @@ private fun ProposalCard(p: Proposal, onNo: () -> Unit, onEdit: () -> Unit, onYe
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Txt(p.hago, 17, 800)
-                Tag(p.significa, Auna.MintStrong, Auna.DeepGreen, fontSize = 15)
+                if (p.significa.isNotBlank()) Tag(p.significa, Auna.MintStrong, Auna.DeepGreen, fontSize = 15)
             }
         }
 
