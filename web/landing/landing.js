@@ -24,6 +24,12 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
 document.querySelectorAll(".reveal, .lines").forEach((el) => io.observe(el));
 
+// Antes y ahora: la secuencia empieza cuando la diapositiva ocupa casi toda la pantalla.
+const antes = document.getElementById("antes");
+if (antes) new IntersectionObserver((es, o) => es.forEach((e) => {
+  if (e.isIntersecting) { antes.classList.add("play"); o.disconnect(); }
+}), { threshold: 0.6 }).observe(antes);
+
 // Cabecera: se esconde al bajar y vuelve al subir. Marca la sección activa.
 const cabecera = document.querySelector(".top");
 let lastY = scrollY;
