@@ -310,3 +310,21 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
   .librito { width: min(300px, 80vw); height: 300px; }
   .phone.mini { height: 380px; }
 }
+
+/* ---------- Diapositivas del modo presentación (data-p) ---------- */
+@media (min-width: 961px) {
+  .slide { height: 100vh; height: 100svh; min-height: 0 !important; overflow: hidden; }
+}
+.mapa, .roadmap, .eslogan { display: flex; flex-direction: column; justify-content: center; padding-top: 96px !important; padding-bottom: 40px !important; }
+.mapa .sec-head, .roadmap .sec-head { margin-bottom: 32px; }
+.hueco { flex: 1; max-height: 60vh; display: grid; place-items: center; border: 3px dashed var(--menta2); background: rgba(255, 255, 255, 0.5); box-shadow: none; }
+.roadmap .ruta { margin: 0; }
+.eslogan { align-items: center; text-align: center; gap: 28px; }
+.eslogan-sol { width: clamp(80px, 12vh, 130px); height: auto; }
+.eslogan .big { font-size: clamp(40px, 6vw, 84px); }
+.eslogan-marca { width: clamp(120px, 14vw, 190px); height: auto; }
+
+/* Telón para saltar entre diapositivas no seguidas */
+.telon { position: fixed; inset: 0; z-index: 80; background: var(--fondo); opacity: 0; pointer-events: none; transition: opacity 0.28s ease; }
+.telon.on { opacity: 1; }
+.presenta .top { transform: translateY(calc(-100% - 60px)); box-shadow: none; }

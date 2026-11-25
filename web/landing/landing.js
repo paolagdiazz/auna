@@ -150,27 +150,52 @@ form.addEventListener("submit", (e) => {
   note.textContent = "Se ha abierto tu correo con el mensaje listo para enviar.";
 });
 
-// Teclado: espacio o → avanzan a la siguiente parada; mayús+espacio o ← vuelven.
-// Las paradas son cada sección y, dentro de «La app», cada paso del móvil.
-const paradas = [...document.querySelectorAll("main > section, .step, .pie")];
-const suave = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-function destino(el) {
-  const r = el.getBoundingClientRect();
-  if (el.classList.contains("step")) return scrollY + r.top + r.height / 2 - innerHeight / 2;
-  return scrollY + r.top;
+// Modo presentación: espacio o → van a la siguiente diapositiva marcada con data-p;
+// mayús+espacio o ← vuelven. Si hay secciones de la web en medio, se salta con un telón.
+const paradas = [...document.querySelectorAll("main > section[data-p]")];
+const suave = matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+const telon = document.createElement("div");
+telon.className = "telon";
+document.body.appendChild(telon);
+let saltando = false;
+// Desplazamiento propio (0,7 s con aceleración suave) para que cada paso dure siempre lo mismo.
+function deslizar(y, fin) {
+  const raiz = document.documentElement;
+  const y0 = scrollY, dy = y - y0, t0 = performance.now(), dur = 700;
+  raiz.style.scrollBehavior = "auto";
+  const paso = (t) => {
+    const k = Math.min(1, (t - t0) / dur);
+    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    scrollTo(0, y0 + dy * e);
+    if (k < 1) requestAnimationFrame(paso);
+    else { raiz.style.scrollBehavior = ""; fin && fin(); }
+  };
+  requestAnimationFrame(paso);
 }
-let ultimo = { y: 0, t: -1e9 }; // si pulsas seguido, cuenta desde la parada a la que ya vamos
+function indiceActual() {
+  // La diapositiva cuyo borde superior está más cerca de lo alto de la pantalla.
+  let mejor = 0, dist = Infinity;
+  paradas.forEach((el, i) => { const d = Math.abs(el.getBoundingClientRect().top); if (d < dist) { dist = d; mejor = i; } });
+  return { i: mejor, exacto: dist < 8, arriba: paradas[mejor].getBoundingClientRect().top < 0 };
+}
 function irA(dir) {
-  const max = document.documentElement.scrollHeight - innerHeight;
-  const ys = paradas.filter((el) => !el.closest(".app") || el.classList.contains("step") || el === document.getElementById("app"))
-    .map((el) => Math.min(max, Math.max(0, Math.round(destino(el)))))
-    .sort((a, b) => a - b)
-    .filter((v, i, arr) => i === 0 || v - arr[i - 1] >= innerHeight * 0.3);
-  const y = performance.now() - ultimo.t < 900 ? ultimo.y : scrollY;
-  const t = dir > 0 ? ys.find((v) => v > y + 8) : [...ys].reverse().find((v) => v < y - 8);
-  if (t === undefined) return;
-  ultimo = { y: t, t: performance.now() };
-  scrollTo({ top: t, behavior: suave });
+  if (saltando) return;
+  const pos = indiceActual();
+  let i;
+  if (dir > 0) i = pos.exacto || pos.arriba ? pos.i + 1 : pos.i;
+  else i = pos.exacto || !pos.arriba ? pos.i - 1 : pos.i;
+  if (i < 0 || i >= paradas.length) return;
+  const el = paradas[i];
+  const seguidas = el.previousElementSibling === paradas[i - 1] && dir > 0 || el.nextElementSibling === paradas[i + 1] && dir < 0;
+  const y = el.offsetTop;
+  if (suave === "instant") { scrollTo({ top: y, behavior: "instant" }); return; }
+  if (seguidas) { saltando = true; deslizar(y, () => (saltando = false)); return; }
+  saltando = true;
+  telon.classList.add("on");
+  setTimeout(() => {
+    scrollTo({ top: y, behavior: "instant" });
+    requestAnimationFrame(() => { telon.classList.remove("on"); setTimeout(() => (saltando = false), 300); });
+  }, 300);
 }
 addEventListener("keydown", (e) => {
   if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -182,5 +207,8 @@ addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft" && !e.shiftKey) dir = -1;
   if (!dir) return;
   e.preventDefault();
+  document.body.classList.add("presenta");
   irA(dir);
 });
+// Al volver a usar el ratón o el dedo, se sale del modo presentación y vuelve la cabecera.
+["wheel", "touchstart", "mousedown"].forEach((t) => addEventListener(t, () => document.body.classList.remove("presenta"), { passive: true }));

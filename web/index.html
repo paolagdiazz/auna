@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="landing/landing.css?v=9">
+<link rel="stylesheet" href="landing/landing.css?v=14">
 </head>
 <body>
 
@@ -29,8 +29,8 @@
   <nav class="menu" aria-label="Secciones">
     <a href="#app">La app</a>
     <a href="#somos">Quiénes somos</a>
-    <a href="#logros">Qué queremos</a>
-    <a href="#ayuda">A quién ayuda</a>
+    <a href="#mapa">Validación</a>
+    <a href="#roadmap">Roadmap</a>
     <a href="#contacto">Contacto</a>
   </nav>
   <div class="top-actions">
@@ -40,7 +40,7 @@
   </div>
 </header>
 <nav class="menu-movil" id="menu-movil" aria-label="Secciones" hidden>
-  <a href="#app">La app</a><a href="#somos">Quiénes somos</a><a href="#logros">Qué queremos</a><a href="#ayuda">A quién ayuda</a><a href="#contacto">Contacto</a><a href="app/">Soy profe</a><a href="#descargar">Soy tutor legal</a>
+  <a href="#app">La app</a><a href="#somos">Quiénes somos</a><a href="#mapa">Validación</a><a href="#roadmap">Roadmap</a><a href="#contacto">Contacto</a><a href="app/">Soy profe</a><a href="#descargar">Soy tutor legal</a>
 </nav>
 
 <!-- Hilo de puntos que se dibuja al bajar y une las secciones -->
@@ -48,7 +48,7 @@
 
 <main>
   <!-- PORTADA -->
-  <section class="hero">
+  <section class="hero slide" id="portada" data-p>
     <div class="hero-text">
       <p class="kicker reveal">Para niños y niñas que no hablan</p>
       <h1 class="lines"><span>Sus gestos</span><span>también son <em>palabras</em>.</span></h1>
@@ -71,12 +71,12 @@
   </section>
 
   <!-- FRASE -->
-  <section class="frase" id="frase">
+  <section class="frase slide" id="frase" data-p>
     <p class="lines big"><span>Marco no habla.</span><span>Pero se comunica.</span><span>Lo difícil es <em>que le entiendan</em>.</span></p>
   </section>
 
   <!-- ANTES Y AHORA -->
-  <section class="antes" id="antes">
+  <section class="antes slide" id="antes" data-p>
     <div class="lado viejo">
       <p class="kicker">Hasta ahora</p>
       <div class="librito" aria-hidden="true">
@@ -193,58 +193,30 @@
     </ul>
   </section>
 
-  <!-- 3 · QUÉ QUEREMOS LOGRAR -->
-  <section class="logros" id="logros">
+  <!-- 3 · MAPA DE VALIDACIÓN -->
+  <section class="mapa slide" id="mapa" data-p>
     <header class="sec-head">
-      <p class="kicker reveal">3 · Qué queremos lograr</p>
-      <h2 class="lines"><span>Que entenderle</span><span>no dependa <em>de la suerte</em></span></h2>
-      <p class="reveal">Que cualquier persona que cuide a un niño que no habla sepa qué hacer, aunque sea su primer día.</p>
+      <p class="kicker reveal">3 · Mapa de validación</p>
+      <h2 class="lines"><span>Lo hemos <em>comprobado</em></span></h2>
+    </header>
+    <div class="hueco card reveal"><p class="placeholder">[Aquí irá el mapa de validación.]</p></div>
+  </section>
+
+  <!-- 4 · ROADMAP -->
+  <section class="roadmap slide" id="roadmap" data-p>
+    <header class="sec-head">
+      <p class="kicker reveal">4 · Roadmap</p>
+      <h2 class="lines"><span>Hacia dónde <em>vamos</em></span></h2>
     </header>
     <ol class="ruta">
-      <li class="reveal"><span class="n">1</span><strong>Hoy</strong><p>App para familias (Android) y web para profes y familiares, ya conectadas. Datos de ejemplo.</p></li>
-      <li class="reveal"><span class="n">2</span><strong class="placeholder">[Siguiente paso]</strong><p class="placeholder">[Por ejemplo: piloto con un colegio o una asociación.]</p></li>
+      <li class="reveal"><span class="n">1</span><strong>Hoy</strong><p>App para familias y web para profes y familiares, ya conectadas.</p></li>
+      <li class="reveal"><span class="n">2</span><strong class="placeholder">[Siguiente paso]</strong><p class="placeholder">[Qué viene ahora.]</p></li>
       <li class="reveal"><span class="n">3</span><strong class="placeholder">[Después]</strong><p class="placeholder">[Qué viene luego.]</p></li>
       <li class="reveal"><span class="n">4</span><strong class="placeholder">[A largo plazo]</strong><p class="placeholder">[La meta.]</p></li>
     </ol>
-    <ul class="principios">
-      <li class="card reveal"><strong>Lo decide la familia</strong><span>Quién ve el pasaporte, cuánto tiempo y qué puede proponer.</span></li>
-      <li class="card reveal"><strong>Respuestas honestas</strong><span>Aúna solo responde con lo que la familia ha contado. Si no lo sabe, lo dice.</span></li>
-      <li class="card reveal"><strong>Lista para una emergencia</strong><span>La tarjeta QR funciona en cualquier móvil, sin instalar nada.</span></li>
-      <li class="card reveal"><strong>Hecha con familias</strong><span class="placeholder">[Con quién la estáis probando.]</span></li>
-    </ul>
   </section>
 
-  <!-- 4 · A QUIÉN AYUDA -->
-  <section class="ayuda" id="ayuda">
-    <header class="sec-head">
-      <p class="kicker reveal">4 · A quién ayuda</p>
-      <div class="stat reveal"><span class="big-n placeholder">[XX]</span><p class="placeholder">[Dato: cuántos niños y niñas no hablan o se comunican de otra forma, y su fuente.]</p></div>
-    </header>
-    <ul class="quien">
-      <li class="card reveal"><strong>Familias</strong><span>Contar una vez lo que siempre tenéis que repetir.</span></li>
-      <li class="card reveal"><strong>Niños y niñas que no hablan</strong><span>Que les entiendan en el cole, en el respiro o en urgencias.</span></li>
-      <li class="card reveal"><strong>Profes y monitores</strong><span>Saber qué hacer desde el primer día, sin adivinar.</span></li>
-      <li class="card reveal"><strong>Sanitarios y emergencias</strong><span>Lo imprescindible, al escanear su tarjeta.</span></li>
-    </ul>
-
-    <div class="demo card reveal" aria-labelledby="demo-t">
-      <h3 id="demo-t">¿Qué quiere decir Marco?</h3>
-      <p class="muted">Toca lo que hace y mira lo que su familia ha contado.</p>
-      <div class="demo-chips" role="group" aria-label="Lo que hace Marco">
-        <button aria-pressed="true" data-i="0">Se tira de la oreja y llora</button>
-        <button aria-pressed="false" data-i="1">Se tapa los oídos y se ríe</button>
-        <button aria-pressed="false" data-i="2">Te lleva a la nevera</button>
-        <button aria-pressed="false" data-i="3">Da palmas mirando la puerta</button>
-      </div>
-      <div class="demo-out" aria-live="polite">
-        <img src="landing/img/girasol.png" alt="" width="64" height="64">
-        <div><p class="sig" id="demo-sig">Le duele algo</p><p id="demo-hacer">Enséñale los pictos del cuerpo y avisa a su madre.</p></div>
-      </div>
-      <p class="tiny muted">Ejemplo con datos de muestra.</p>
-    </div>
-  </section>
-
-  <!-- DESCARGAR -->
+  <!-- QUE LE ENTIENDAN NO DEBERÍA SER UN RETO -->
   <section class="descargar" id="descargar">
     <div class="card green big-cta">
       <h2 class="lines"><span>Que le entiendan</span><span>no debería ser <em>un reto</em>.</span></h2>
@@ -280,6 +252,13 @@
       </form>
     </div>
   </section>
+
+  <!-- ESLOGAN -->
+  <section class="eslogan slide" id="eslogan" data-p>
+    <img class="eslogan-sol reveal" src="landing/img/girasol.png" alt="" width="120" height="120">
+    <p class="lines big"><span>Sus gestos</span><span>también son <em>palabras</em>.</span></p>
+    <img class="eslogan-marca reveal" src="landing/img/wordmark.png" alt="Aúna" width="160" height="58">
+  </section>
 </main>
 
 <footer class="pie">
@@ -288,6 +267,6 @@
   <p><a href="app/">Entrar en la web</a> · <a href="https://github.com/paolagdiazz/auna">Código</a></p>
 </footer>
 
-<script src="landing/landing.js?v=9" defer></script>
+<script src="landing/landing.js?v=14" defer></script>
 </body>
 </html>
