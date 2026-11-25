@@ -143,3 +143,38 @@ form.addEventListener("submit", (e) => {
   location.href = `mailto:${CORREO}?subject=${encodeURIComponent("Aúna · mensaje de " + d.get("nombre"))}&body=${encodeURIComponent(body)}`;
   note.textContent = "Se ha abierto tu correo con el mensaje listo para enviar.";
 });
+
+// Teclado: espacio o → avanzan a la siguiente parada; mayús+espacio o ← vuelven.
+// Las paradas son cada sección y, dentro de «La app», cada paso del móvil.
+const paradas = [...document.querySelectorAll("main > section, .step, .pie")];
+const suave = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+function destino(el) {
+  const r = el.getBoundingClientRect();
+  if (el.classList.contains("step")) return scrollY + r.top + r.height / 2 - innerHeight / 2;
+  return scrollY + r.top;
+}
+let ultimo = { y: 0, t: -1e9 }; // si pulsas seguido, cuenta desde la parada a la que ya vamos
+function irA(dir) {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const ys = paradas.filter((el) => !el.closest(".app") || el.classList.contains("step") || el === document.getElementById("app"))
+    .map((el) => Math.min(max, Math.max(0, Math.round(destino(el)))))
+    .sort((a, b) => a - b)
+    .filter((v, i, arr) => i === 0 || v - arr[i - 1] >= innerHeight * 0.3);
+  const y = performance.now() - ultimo.t < 900 ? ultimo.y : scrollY;
+  const t = dir > 0 ? ys.find((v) => v > y + 8) : [...ys].reverse().find((v) => v < y - 8);
+  if (t === undefined) return;
+  ultimo = { y: t, t: performance.now() };
+  scrollTo({ top: t, behavior: suave });
+}
+addEventListener("keydown", (e) => {
+  if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+  const el = document.activeElement;
+  if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName))) return;
+  let dir = 0;
+  if (e.key === " " || e.code === "Space") dir = e.shiftKey ? -1 : 1;
+  else if (e.key === "ArrowRight" && !e.shiftKey) dir = 1;
+  else if (e.key === "ArrowLeft" && !e.shiftKey) dir = -1;
+  if (!dir) return;
+  e.preventDefault();
+  irA(dir);
+});

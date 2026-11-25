@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Aúna · El pasaporte que te entiende</title>
+<title>Aúna · Sus gestos también son palabras</title>
 <meta name="description" content="Aúna ayuda a las familias de niños y niñas que no hablan a contar cómo se comunican, para que profes, monitores y sanitarios les entiendan.">
 <meta name="theme-color" content="#F3F8F5">
 <link rel="icon" href="landing/img/icono.png">
 <link rel="apple-touch-icon" href="landing/img/icono.png">
-<meta property="og:title" content="Aúna · El pasaporte que te entiende">
+<meta property="og:title" content="Aúna · Sus gestos también son palabras">
 <meta property="og:description" content="Para que quien cuida a un niño que no habla le entienda desde el primer día.">
 <meta property="og:image" content="landing/img/icono.png">
 <script>
@@ -18,14 +18,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="landing/landing.css">
+<link rel="stylesheet" href="landing/landing.css?v=4">
 </head>
 <body>
 
 <a class="skip" href="#app">Saltar al contenido</a>
 
 <header class="top" id="top">
-  <a href="#top" class="brand" aria-label="Aúna, inicio"><img src="landing/img/logo.png" alt="Aúna" width="132" height="46"></a>
+  <a href="#top" class="brand" aria-label="Aúna, inicio"><img class="sol" src="landing/img/girasol.png" alt="" width="44" height="44"><img class="marca" src="landing/img/wordmark.png" alt="Aúna" width="110" height="40"></a>
   <nav class="menu" aria-label="Secciones">
     <a href="#app">La app</a>
     <a href="#somos">Quiénes somos</a>
@@ -34,13 +34,13 @@
     <a href="#contacto">Contacto</a>
   </nav>
   <div class="top-actions">
-    <a class="btn ghost small hide-sm" href="app/">Entrar</a>
-    <a class="btn small" href="#descargar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar</a>
+    <a class="btn outline small hide-sm" href="app/">Soy profe</a>
+    <a class="btn small" href="#descargar">Soy tutor legal</a>
     <button class="burger" aria-label="Abrir el menú" aria-expanded="false" aria-controls="menu-movil"><span></span><span></span></button>
   </div>
 </header>
 <nav class="menu-movil" id="menu-movil" aria-label="Secciones" hidden>
-  <a href="#app">La app</a><a href="#somos">Quiénes somos</a><a href="#logros">Qué queremos</a><a href="#ayuda">A quién ayuda</a><a href="#contacto">Contacto</a><a href="app/">Entrar en la web</a>
+  <a href="#app">La app</a><a href="#somos">Quiénes somos</a><a href="#logros">Qué queremos</a><a href="#ayuda">A quién ayuda</a><a href="#contacto">Contacto</a><a href="app/">Soy profe</a><a href="#descargar">Soy tutor legal</a>
 </nav>
 
 <!-- Hilo de puntos que se dibuja al bajar y une las secciones -->
@@ -50,13 +50,14 @@
   <!-- PORTADA -->
   <section class="hero">
     <div class="hero-text">
-      <p class="kicker reveal">Para familias de niños y niñas que no hablan</p>
-      <h1 class="lines"><span>Un pasaporte</span><span>que <em>te entiende</em>.</span></h1>
-      <p class="lead reveal">Aúna convierte lo que la familia sabe —cómo dice sí y no, qué le calma, qué significa cada gesto— en un pasaporte que profes, monitores y sanitarios entienden al momento.</p>
+      <p class="kicker reveal">Para niños y niñas que no hablan</p>
+      <h1 class="lines"><span>Sus gestos</span><span>también son <em>palabras</em>.</span></h1>
+      <p class="lead reveal">Aúna recoge lo que la familia sabe —cómo dice sí y no, qué le calma, qué significa cada gesto— para que profes, monitores y sanitarios le entiendan desde el primer día.</p>
       <div class="cta reveal">
-        <a class="btn" href="#app">Descubre la app</a>
-        <a class="btn outline" href="#descargar">Descargar</a>
+        <a class="btn" href="#descargar">Soy tutor legal</a>
+        <a class="btn outline" href="app/">Soy profe</a>
       </div>
+      <p class="tiny muted reveal teclas">Pulsa <kbd>espacio</kbd> o <kbd>→</kbd> para avanzar</p>
     </div>
     <div class="hero-phone">
       <div class="halo" aria-hidden="true"><div class="petalos"></div></div>
@@ -260,11 +261,11 @@
 </main>
 
 <footer class="pie">
-  <img src="landing/img/logo.png" alt="Aúna" width="120" height="42">
+  <span class="brand pie-brand"><img class="sol" src="landing/img/girasol.png" alt="" width="40" height="40"><img class="marca" src="landing/img/wordmark.png" alt="Aúna" width="100" height="36"></span>
   <p>Pictogramas de <a href="https://arasaac.org">ARASAAC</a> (CC BY-NC-SA) en la web. Fotos de ejemplo.</p>
   <p><a href="app/">Entrar en la web</a> · <a href="https://github.com/paolagdiazz/auna">Código</a></p>
 </footer>
 
-<script src="landing/landing.js" defer></script>
+<script src="landing/landing.js?v=4" defer></script>
 </body>
 </html>
