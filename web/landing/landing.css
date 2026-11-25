@@ -367,3 +367,56 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
 .js .mapa.play .pin .bocadillo { opacity: 1; scale: 1; }
 @media (prefers-reduced-motion: reduce) { .js .pin .pin-punto, .js .pin .bocadillo { transition: none; } .mapa-wrap { animation: none; } }
 @media (max-width: 960px) { .mapa-wrap { width: 100%; } .bocadillo { max-width: 160px; font-size: 13px; } }
+
+/* ---------- Roadmap ---------- */
+.roadmap .sec-head, .marketing .sec-head, .financiacion .sec-head { margin-bottom: 26px; }
+.etapas { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
+.etapas::before { content: ""; position: absolute; top: 20px; left: 20px; right: 20px; border-top: 3px dotted var(--hoja); }
+.etapa { display: grid; gap: 10px; align-content: start; position: relative; }
+.etapa-t { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; font-weight: 900; font-size: 17px; color: var(--verde); }
+.etapa-t .n { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--girasol); color: var(--tinta); font-size: 18px; box-shadow: 0 0 0 6px var(--fondo); flex-shrink: 0; }
+.etapa:first-child .n { background: var(--verde); color: #fff; }
+.hito { background: #fff; border-radius: 18px; padding: 14px 16px; display: grid; gap: 4px; box-shadow: 0 8px 24px -16px rgba(15, 81, 50, 0.45); }
+.hito strong { font-size: 16px; line-height: 1.25; }
+.hito span { color: var(--gris); font-size: 14px; line-height: 1.35; }
+.hito.ahora { box-shadow: inset 0 0 0 2px var(--verde), 0 8px 24px -16px rgba(15, 81, 50, 0.45); }
+.ya { justify-self: start; font-style: normal; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; background: var(--verde); border-radius: 999px; padding: 2px 10px; }
+.meta-final { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 28px auto 0; font-size: clamp(17px, 1.6vw, 22px); color: var(--tinta); background: var(--menta); padding: 14px 26px; border-radius: 999px; width: fit-content; }
+.meta-final img { width: 40px; height: 40px; }
+
+/* ---------- Marketing ---------- */
+.marketing .sec-head p:not(.kicker) { max-width: 640px; margin-left: auto; margin-right: auto; }
+.publicos { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.publicos li { display: grid; gap: 10px; align-content: start; }
+.publico { margin: 0; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--equilibrio); }
+.publicos q { font-weight: 900; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.3; color: var(--tinta); quotes: "«" "»"; }
+.publicos span { color: var(--gris); font-size: 15px; }
+.regla { text-align: center; margin: 24px 0 0; font-weight: 800; color: var(--equilibrio); }
+
+/* ---------- Financiación ---------- */
+.fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+.ingresos { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.ingresos li { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: baseline; padding-bottom: 12px; border-bottom: 2px dotted var(--menta2); }
+.ingresos strong { font-size: 17px; color: var(--verde); }
+.ingresos span { color: var(--gris); font-size: 15px; }
+.ingresos .sello-verde { display: block; border: 0; padding: 10px 18px; width: fit-content; border-radius: 999px; background: var(--verde); color: #fff; font-weight: 900; }
+.presupuesto { display: grid; gap: 8px; }
+.presupuesto .kicker { margin: 0; }
+.total { margin: 0; font-size: clamp(40px, 4.4vw, 60px); font-weight: 900; line-height: 1; color: var(--tinta); }
+.barras { list-style: none; padding: 0; margin: 8px 0 4px; display: grid; gap: 8px; }
+.barras li { display: grid; grid-template-columns: 90px 1fr 70px; align-items: center; gap: 10px; font-size: 14px; }
+.barras span { font-weight: 800; }
+.barras i { display: block; height: 12px; border-radius: 999px; background: var(--menta); position: relative; overflow: hidden; }
+.barras i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: var(--equilibrio); transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s; }
+.presupuesto.visto .barras i::after, html:not(.js) .barras i::after { width: var(--w); }
+.barras b { text-align: right; color: var(--gris); }
+.metas-t { margin: 6px 0 0; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--equilibrio); }
+.metas { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.metas li { background: var(--menta); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+.metas b { font-weight: 900; color: var(--verde); }
+
+@media (max-width: 960px) {
+  .etapas, .publicos, .fin-grid { grid-template-columns: 1fr; }
+  .etapas::before { display: none; }
+  .ingresos li { grid-template-columns: 1fr; gap: 4px; }
+}
