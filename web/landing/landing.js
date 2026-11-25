@@ -31,10 +31,13 @@ if (antes) new IntersectionObserver((es, o) => es.forEach((e) => {
 }), { threshold: 0.6 }).observe(antes);
 
 // Mapa de validación. Para añadir a alguien, copia una línea de ejemplo y quita las //.
+// nombre: quién es (va en negrita). frase: lo que pone el bocadillo.
+// cita: true si la frase es algo que nos dijeron (sale entre comillas).
 // lado: dónde sale el bocadillo respecto al pin ("arriba", "abajo", "izq" o "der").
 // Vale cualquier sitio de la provincia. Las coordenadas se sacan en Google Maps: clic derecho sobre el sitio y se copian (lat, lon).
 const VALIDADORES = [
-  // { lat: 36.7213, lon: -4.4214, frase: "Por fin no tengo que repetirlo todo cada curso.", quien: "Madre de Marco", lado: "arriba" },
+  { lat: 36.5610, lon: -4.6162, nombre: "Colegio Salliver · Fuengirola", frase: "Centro privado interesado", lado: "arriba" },
+  // { lat: 36.7213, lon: -4.4214, nombre: "Madre de Marco", frase: "Por fin no tengo que repetirlo todo cada curso.", cita: true, lado: "arriba" },
 ];
 (function mapa() {
   const caja = document.getElementById("pines");
@@ -53,9 +56,9 @@ const VALIDADORES = [
     pin.style.left = `${(x / W) * 100}%`;
     pin.style.top = `${(y / H) * 100}%`;
     pin.style.setProperty("--d", `${0.3 + i * 0.6}s`);
-    pin.innerHTML = `<span class="pin-punto">${pinSvg}</span><div class="bocadillo"><q></q><span></span></div>`;
-    pin.querySelector("q").textContent = v.frase;
-    pin.querySelector(".bocadillo span").textContent = v.quien || "";
+    pin.innerHTML = `<span class="pin-punto">${pinSvg}</span><div class="bocadillo"><strong></strong>${v.cita ? "<q></q>" : "<p></p>"}</div>`;
+    pin.querySelector(".bocadillo strong").textContent = v.nombre || "";
+    pin.querySelector(".bocadillo q, .bocadillo p").textContent = v.frase;
     caja.appendChild(pin);
   });
   vacio.hidden = VALIDADORES.length > 0;

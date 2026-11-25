@@ -349,8 +349,8 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
 .pin-punto::after { content: ""; position: absolute; left: 50%; bottom: -5px; width: 16px; height: 6px; translate: -50% 0; border-radius: 50%; background: rgba(15, 81, 50, 0.25); z-index: -1; }
 .bocadillo { position: absolute; width: max-content; max-width: 230px; background: #fff; border-radius: 18px; padding: 12px 14px; box-shadow: 0 10px 30px -10px rgba(15, 81, 50, 0.45);
   font-size: 15px; line-height: 1.35; }
-.bocadillo q { display: block; font-weight: 800; color: var(--tinta); quotes: "«" "»"; }
-.bocadillo span { display: block; margin-top: 6px; font-size: 13px; color: var(--gris); }
+.bocadillo strong { display: block; font-weight: 900; font-size: 15px; color: var(--verde); }
+.bocadillo q, .bocadillo p { display: block; margin: 4px 0 0; font-weight: 700; color: var(--tinta); quotes: "«" "»"; }
 .bocadillo::after { content: ""; position: absolute; width: 14px; height: 14px; background: #fff; rotate: 45deg; }
 .pin.arriba .bocadillo { left: 0; bottom: 48px; translate: -50% 0; }
 .pin.arriba .bocadillo::after { left: calc(50% - 7px); bottom: -6px; }
