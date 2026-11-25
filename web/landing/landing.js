@@ -177,10 +177,9 @@ document.querySelectorAll(".demo-chips button").forEach((b) => b.addEventListene
 }));
 
 // Contacto: sin servidor, el mensaje se abre en el correo de la persona.
-const CORREO = ""; // ← pon aquí el correo de contacto
+const CORREO = "contacto@auna.es";
 const form = document.getElementById("form");
 const note = document.getElementById("form-note");
-if (CORREO) { const t = document.getElementById("correo-txt"); t.textContent = CORREO; t.classList.remove("placeholder"); }
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   if (!CORREO) { note.textContent = "Falta poner el correo de contacto del equipo."; return; }

@@ -162,7 +162,7 @@ main > section { max-width: var(--ancho); margin: 0 auto; padding: 120px 24px; p
 .valores li, .principios li, .quien li { display: grid; gap: 6px; align-content: start; }
 .valores strong, .principios strong, .quien strong { font-size: 19px; }
 .valores span, .principios span, .quien span { color: var(--gris); font-size: 16px; }
-.equipo { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: center; }
+.equipo { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; text-align: center; }
 .equipo li { display: grid; justify-items: center; gap: 4px; }
 .equipo .av { width: 96px; height: 96px; border-radius: 50%; background: var(--menta); display: grid; place-items: center; font-size: 34px; font-weight: 900; color: var(--equilibrio); margin-bottom: 8px; box-shadow: inset 0 0 0 4px #fff, 0 0 0 3px var(--girasol); }
 
@@ -370,7 +370,7 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
 
 /* ---------- Roadmap y marketing ---------- */
 .roadmap .sec-head { margin-bottom: 4px; }
-.camino { position: relative; width: 100%; aspect-ratio: 1000 / 270; max-height: 38vh; margin: 0 auto; }
+.camino { position: relative; width: 100%; aspect-ratio: 1000 / 270; max-height: 33vh; margin: 0 auto; }
 .camino-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .camino-base { fill: none; stroke: var(--menta); stroke-width: 22; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .camino-linea { fill: none; stroke: var(--equilibrio); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1.2 2.2; vector-effect: non-scaling-stroke; }
@@ -393,16 +393,25 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
 .parada.meta strong { font-size: 14px; color: var(--verde); }
 .ya { font-style: normal; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; background: var(--verde); border-radius: 999px; padding: 2px 10px; margin-bottom: 2px; }
 
-.llegar { margin-top: 14px; background: #fff; border-radius: 28px; padding: 16px 24px 18px; box-shadow: 0 14px 40px -24px rgba(15, 81, 50, 0.5); }
-.llegar-t { margin: 0 0 10px; text-align: center; font-weight: 900; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--equilibrio); }
-.llegar-pasos { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; position: relative; }
-.llegar-pasos li { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: center; position: relative; }
-.llegar-pasos .bola { grid-row: span 2; width: 54px; height: 54px; box-shadow: 0 0 0 4px var(--menta); }
-.llegar-pasos .bola.verde { box-shadow: 0 0 0 4px var(--hoja); }
-.llegar-pasos .bola svg { width: 26px; height: 26px; }
-.llegar-pasos strong { font-size: 18px; display: flex; align-items: center; gap: 8px; }
-.llegar-pasos small { font-size: 14px; color: var(--gris); }
-.llegar-pasos li:not(:last-child)::after { content: ""; position: absolute; right: -16px; top: 50%; width: 12px; height: 12px; border-top: 3px solid var(--hoja); border-right: 3px solid var(--hoja); rotate: 45deg; translate: 0 -50%; }
+.candado { position: absolute; left: var(--x); top: var(--y); width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--girasol); box-shadow: 0 0 0 4px #fff, 0 10px 20px -8px rgba(15, 81, 50, 0.5); }
+.candado svg { width: 22px; height: 22px; fill: none; stroke: var(--tinta); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.planes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+.panel { background: #fff; border-radius: 26px; padding: 14px 18px 16px; box-shadow: 0 14px 40px -24px rgba(15, 81, 50, 0.5); }
+.panel-t { margin: 0 0 12px; text-align: center; font-weight: 900; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--equilibrio); }
+.trio { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.trio li { display: grid; justify-items: center; align-content: start; text-align: center; gap: 4px; position: relative; }
+.trio .bola { width: 50px; height: 50px; margin-bottom: 4px; box-shadow: 0 0 0 4px var(--menta); }
+.trio .bola.verde { box-shadow: 0 0 0 4px var(--hoja); }
+.trio .bola svg { width: 24px; height: 24px; }
+.trio strong { font-size: 16px; line-height: 1.2; }
+.trio small { font-size: 13px; line-height: 1.3; color: var(--gris); max-width: 150px; }
+.flechas li:not(:last-child)::after { content: ""; position: absolute; top: 20px; right: -9px; width: 10px; height: 10px; border-top: 3px solid var(--hoja); border-right: 3px solid var(--hoja); rotate: 45deg; }
+.planes-pie { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 12px 0 0; font-size: 15px; }
+.planes-pie span { background: var(--menta); border-radius: 999px; padding: 6px 16px; }
+.planes-pie b { font-weight: 900; color: var(--verde); }
+.planes-pie .seguro { background: var(--verde); color: #fff; font-weight: 800; }
 
 /* Animación: el camino se dibuja, las paradas aparecen una a una y luego los públicos */
 .js .roadmap .camino-linea { stroke-dasharray: 0 100; transition: stroke-dasharray 2s ease; }
@@ -411,8 +420,10 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
 .js .roadmap.play .camino-base { clip-path: inset(0 0 0 0); }
 .js .roadmap .parada { opacity: 0; scale: 0.4; transition: opacity 0.4s, scale 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); transition-delay: calc(0.3s + var(--i) * 0.4s); }
 .js .roadmap.play .parada { opacity: 1; scale: 1; }
-.js .roadmap .llegar-pasos li { opacity: 0; translate: 0 20px; transition: opacity 0.5s, translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(2.2s + var(--i) * 0.3s); }
-.js .roadmap.play .llegar-pasos li { opacity: 1; translate: 0 0; }
+.js .roadmap .candado { opacity: 0; scale: 0.3; transition: opacity 0.3s, scale 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); transition-delay: 0.9s; }
+.js .roadmap.play .candado { opacity: 1; scale: 1; }
+.js .roadmap .trio li, .js .roadmap .planes-pie { opacity: 0; translate: 0 16px; transition: opacity 0.5s, translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(2.1s + var(--i, 6) * 0.2s); }
+.js .roadmap.play .trio li, .js .roadmap.play .planes-pie { opacity: 1; translate: 0 0; }
 @media (prefers-reduced-motion: reduce) { .js .roadmap * { transition: none !important; animation: none !important; } }
 @media (max-width: 960px) {
   .camino { aspect-ratio: auto; max-height: none; display: grid; gap: 28px; }
@@ -420,34 +431,10 @@ kbd { font: inherit; font-weight: 900; font-size: 13px; padding: 2px 8px; border
   .parada { position: static; width: auto; height: auto; display: flex; align-items: center; gap: 14px; }
   .parada .bola, .parada.meta .bola { position: static; flex-shrink: 0; }
   .parada p, .parada.meta p { position: static; translate: none; width: auto; justify-items: start; text-align: left; }
-  .llegar-pasos { grid-template-columns: 1fr; }
-  .llegar-pasos li::after { display: none; }
+  .planes { grid-template-columns: 1fr; }
+  .candado { display: none; }
 }
 
-/* ---------- Financiación ---------- */
-.fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
-.ingresos { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
-.ingresos li { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: baseline; padding-bottom: 12px; border-bottom: 2px dotted var(--menta2); }
-.ingresos strong { font-size: 17px; color: var(--verde); }
-.ingresos span { color: var(--gris); font-size: 15px; }
-.ingresos .sello-verde { display: block; border: 0; padding: 10px 18px; width: fit-content; border-radius: 999px; background: var(--verde); color: #fff; font-weight: 900; }
-.presupuesto { display: grid; gap: 8px; }
-.presupuesto .kicker { margin: 0; }
-.total { margin: 0; font-size: clamp(40px, 4.4vw, 60px); font-weight: 900; line-height: 1; color: var(--tinta); }
-.barras { list-style: none; padding: 0; margin: 8px 0 4px; display: grid; gap: 8px; }
-.barras li { display: grid; grid-template-columns: 90px 1fr 70px; align-items: center; gap: 10px; font-size: 14px; }
-.barras span { font-weight: 800; }
-.barras i { display: block; height: 12px; border-radius: 999px; background: var(--menta); position: relative; overflow: hidden; }
-.barras i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: var(--equilibrio); transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s; }
-.presupuesto.visto .barras i::after, html:not(.js) .barras i::after { width: var(--w); }
-.barras b { text-align: right; color: var(--gris); }
-.metas-t { margin: 6px 0 0; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--equilibrio); }
-.metas { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.metas li { background: var(--menta); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
-.metas b { font-weight: 900; color: var(--verde); }
 
-@media (max-width: 960px) {
-  .etapas, .publicos, .fin-grid { grid-template-columns: 1fr; }
-  .etapas::before { display: none; }
-  .ingresos li { grid-template-columns: 1fr; gap: 4px; }
-}
+.equipo strong { font-size: 17px; line-height: 1.25; max-width: 160px; }
+.equipo-pie { text-align: center; margin: 22px 0 0; color: var(--gris); font-weight: 700; }
