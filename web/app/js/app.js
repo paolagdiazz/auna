@@ -190,6 +190,10 @@ function Login({ kidId }) {
     <p class="t15 w7 muted" style="text-align:center">o con tu correo</p>
     <label class="field">Correo<input class="input" type="email" autocomplete="email" required placeholder="laura@correo.es" value=${email} onInput=${(e) => setEmail(e.target.value)} /></label>
     <label class="field">Contraseña<input class="input" type="password" autocomplete="current-password" required placeholder="••••••••" value=${password} onInput=${(e) => setPassword(e.target.value)} /></label>
+    <div class="card mint col" style="gap:8px">
+      <p class="t14 w8">Cuenta de prueba (profe): <b>prueba.profe@auna.test</b> · contraseña <b>prueba</b></p>
+      <button type="button" class="btn white small" onClick=${() => { setEmail("prueba.profe@auna.test"); setPassword("prueba"); }}>Usar la cuenta de prueba</button>
+    </div>
     <${ErrorBox} text=${err} />
     ${info && html`<div class="ok">${info}</div>`}
     <button class="btn" disabled=${busy}>${busy ? "Entrando…" : "Entrar"}</button>
