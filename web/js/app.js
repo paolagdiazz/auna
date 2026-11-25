@@ -124,10 +124,9 @@ function PublicCard({ kidId, user }) {
           <div class="grow"><p class="t24 w9">Hola, soy ${name}</p><p class="w7 muted">${card.noHabla ? "No hablo, pero me comunico" : "Así me comunico"}</p></div>
         </div>
       </div>
-      <${YesNo} />
-      <p class="t18 w7 center" style="text-align:center">¿Quieres saber más de mí?</p>
-      <a class="btn" href=${user ? `#/nino/${kidId}` : `#/entrar?nino=${kidId}`}>${user ? "Ver mi pasaporte" : "Iniciar sesión"}</a>
-      <div class="spacer"></div>
+      <p class="t18 w7" style="text-align:center;padding:8px 8px 0;line-height:1.4">Para acceder a mi pasaporte completo, inicia sesión.</p>
+      <a class="btn" style="width:auto;align-self:center;padding:0 36px" href=${user ? `#/nino/${kidId}` : `#/entrar?nino=${kidId}`}>${user ? "Ver mi pasaporte" : "Iniciar sesión"}</a>
+      <div class="spacer" style="min-height:24px"></div>
       <p class="t22 w9" style="text-align:center">¿Alguna emergencia?</p>
       <div class="grid2">
         <button class="btn red" style="min-height:104px;flex-direction:column;border-radius:22px" onClick=${() => setView("emergencia")}><${Icon} name="warning" size=${34} color="#fff" />Emergencia</button>

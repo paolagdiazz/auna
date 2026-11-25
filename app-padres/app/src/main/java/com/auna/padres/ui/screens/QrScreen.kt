@@ -55,6 +55,9 @@ import com.auna.padres.QrCard
 import com.auna.padres.data.Kid
 import com.auna.padres.data.Templates
 import com.auna.padres.ui.AButton
+import com.auna.padres.ui.AField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import com.auna.padres.ui.AIcon
 import com.auna.padres.ui.BackHeader
 import com.auna.padres.ui.CircleIconButton
@@ -98,6 +101,11 @@ fun QrScreen(vm: AunaViewModel, navi: Navi) {
     }
     val cloudUi by vm.cloudUi.collectAsState()
     val online = cloudUi.signedIn && kid.cloudId != null
+    // El QR siempre abre la página del niño en la web: sin cuenta de la familia no hay página que abrir.
+    if (!online) {
+        ActivateCard(vm, kid, signedIn = cloudUi.signedIn, onBack = { navi.back() })
+        return
+    }
     val qrText = QrCard.payload(kid, online)
     BackHandler(enabled = preview) { preview = false }
 
@@ -289,4 +297,61 @@ private fun RealQr(text: String, sizeDp: Int) {
         modifier = Modifier.size(sizeDp.dp),
         filterQuality = FilterQuality.None,
     )
+}
+
+/** Activar la tarjeta: conectar la cuenta de la familia para que el QR abra la página del niño en la web. */
+@Composable
+private fun ActivateCard(vm: AunaViewModel, kid: Kid, signedIn: Boolean, onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var email by rememberSaveable { mutableStateOf("") }
+    var pass by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    // Con sesión pero sin subir todavía: se sube ya.
+    LaunchedEffect(signedIn) { if (signedIn) vm.syncNow() }
+    val go = { create: Boolean ->
+        if (!busy) {
+            busy = true; error = null
+            scope.launch { error = vm.cloudSignIn(email, pass, create); busy = false }
+        }
+    }
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = Gutter, end = Gutter, top = 20.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        BackHeader("Mi tarjeta QR", onBack)
+        Column(
+            Modifier.fillMaxWidth().card(Auna.Green, 20.dp).padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Girasol(40.dp)
+            Txt("Activa la tarjeta de ${kid.name}", 22, 900, Auna.White, lineHeight = 1.15)
+            Txt(
+                "Al escanear su QR se abrirá su página: «Hola, soy ${kid.name}», iniciar sesión y los botones de emergencia y tutores legales.",
+                15, 700, Auna.Leaf, lineHeight = 1.35,
+            )
+        }
+        if (signedIn) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                androidx.compose.material3.CircularProgressIndicator(Modifier.size(24.dp), color = Auna.Green, strokeWidth = 3.dp)
+                Txt("Preparando la tarjeta…", 17, 800)
+            }
+        } else {
+            Txt("Para eso hace falta la cuenta de la familia (gratis). Escribe tu correo y una contraseña:", 16, 700, lineHeight = 1.35)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Txt("Correo", 15, 800, Auna.Muted)
+                AField(email, { email = it }, "familia@correo.es", Modifier.fillMaxWidth(), bg = Auna.White,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Txt("Contraseña", 15, 800, Auna.Muted)
+                AField(pass, { pass = it }, "Mínimo 8 caracteres", Modifier.fillMaxWidth(), bg = Auna.White, secret = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
+            }
+            error?.let { Txt(it, 15, 800, Auna.Coral) }
+            PrimaryButton(if (busy) "Un momento…" else "Crear cuenta y activar", { go(true) }, Modifier.fillMaxWidth())
+            SecondaryButton("Ya tengo cuenta: entrar", { go(false) }, Modifier.fillMaxWidth(), height = 52.dp, fontSize = 16)
+        }
+        Txt("Las tarjetas que imprimiste antes llevan solo texto: imprime una nueva cuando esté activa.", 14, 700, Auna.Muted, lineHeight = 1.35)
+    }
 }
