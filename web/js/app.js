@@ -390,13 +390,18 @@ function Chat({ profile }) {
       if (!kids?.length) throw new Error("Aún no tienes acceso a ningún niño. Añade uno y espera a que su familia te acepte.");
       const r = await askChat(text, kids);
       let extra = "";
+      let blocks = (r.bloques || []).filter((b) => b.lineas?.some((x) => x.trim()));
       if (r.tipo === "apunte" && r.apunte?.nino) {
         const k = kids.find((x) => x.id === r.apunte.nino);
+        const said = (r.apunte.dijo || text).replace(/^\s*(apunta|anota)\s*:?\s*/i, "");
+        const hago = (r.apunte.hago || said).replace(/^\s*(apunta|anota)\s*:?\s*/i, "");
         try {
-          await fb.propose(r.apunte.nino, { said: r.apunte.dijo || text, hago: r.apunte.hago || text, significa: r.apunte.significa || "", fromName: myName, role: k?.role || "" });
+          await fb.propose(r.apunte.nino, { said, hago: hago.charAt(0).toUpperCase() + hago.slice(1), significa: r.apunte.significa || "", fromName: myName, role: k?.role || "" });
+          if (!blocks.length) blocks = [{ nino: k?.kid.name || "Todos", lineas: [`Se lo he enviado a la familia de ${k?.kid.name || "este niño"} para que lo apruebe.`] }];
         } catch { extra = "No tienes permiso para proponer cambios a esta familia: pídeselo a ella."; }
       }
-      setLog((l) => [...l, { t: "bot", blocks: r.bloques || [], src: r.fuente || "", noKnow: r.tipo === "no_se", extra }]);
+      if (!blocks.length && !extra) blocks = [{ nino: "Todos", lineas: ["Esto no está en sus pasaportes. Pregunta a su familia."] }];
+      setLog((l) => [...l, { t: "bot", blocks, src: r.fuente || "", noKnow: r.tipo === "no_se", extra }]);
     } catch (e) {
       setLog((l) => [...l, { t: "bot", blocks: [{ nino: "Todos", lineas: [e.message] }], src: "", error: true }]);
     }
