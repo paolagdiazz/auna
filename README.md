@@ -32,13 +32,13 @@ A digital communication passport for children who don't speak, built by their fa
 
 ## English
 
-### 💡 The problem
+### The problem
 
 Many children with autism, Angelman syndrome or other conditions don't speak, but they communicate all the time: a gesture, a sound, a way of moving. Their families understand them. A new teacher, a substitute, a summer camp monitor or an ambulance crew usually don't.
 
 Today families solve this with a **paper communication passport**: laminated cards that say what each gesture means and how to respond. It helps, but it gets lost, stays at home and never changes when the child changes.
 
-### 🌻 Our solution
+### Our solution
 
 **Aúna** turns that passport into something alive:
 
@@ -49,7 +49,7 @@ Today families solve this with a **paper communication passport**: laminated car
 - **An emergency card.** A QR code on a wallet card. Whoever scans it sees the essentials, can call the family and can share their location. No app needed.
 - **Built for real use.** Pictograms from ARASAAC, voice input in Spanish, large type and a calm visual style.
 
-### 🧩 What's in this repo
+### What's in this repo
 
 | Folder | What it is |
 | --- | --- |
@@ -61,7 +61,7 @@ Today families solve this with a **paper communication passport**: laminated car
 | [`marca/`](marca) | Brand kit: logos, app icons, QR cards, colour palette and typography. |
 | [`docs/`](docs) | Setup guide and development notes. |
 
-### 🏗️ How it works
+### How it works
 
 ```mermaid
 flowchart LR
@@ -78,7 +78,7 @@ flowchart LR
 - **AI:** Groq (`openai/gpt-oss-120b`) with structured JSON output, behind a Cloudflare Worker that verifies Firebase ID tokens. The parents app can also use your own Groq or Claude key.
 - **Everything runs on free tiers:** Firebase Spark, Cloudflare Workers Free, Groq Free and GitHub Pages.
 
-### 🚀 Try it
+### Try it
 
 - **Web app:** open https://paolagdiazz.github.io/auna/app/ and sign in with the demo teacher account `prueba.profe@auna.test` (password `prueba`).
 - **Android app:** download the APK from [Releases](https://github.com/paolagdiazz/auna/releases/latest) and install it. Your phone may ask you to allow apps from unknown sources. The demo family account is `prueba.familia@auna.test` (password `prueba`).
@@ -86,7 +86,7 @@ flowchart LR
 
 All children's data in the demo is made up. Marco and Lucas are example profiles.
 
-### 🛠️ Run it yourself
+### Run it yourself
 
 ```bash
 git clone https://github.com/paolagdiazz/auna.git
@@ -96,13 +96,13 @@ cd auna/app-padres
 
 The web app has no build step: serve the `web/` folder with any static server (for example `python3 -m http.server -d web`). To connect your own Firebase project, Cloudflare Worker and Groq key, follow [docs/SETUP.md](docs/SETUP.md).
 
-### 🏆 The hackathon
+### The hackathon
 
 Aúna was designed and built in **16 hours** at the **Hackathon IA First** (November 2026), in the **social challenge** track, by team **HashRate**.
 
 We validated the idea with a foundation that works with families, with relatives, and with private schools and town halls. We also kept the whole stack on free tiers so the project can keep running after the event.
 
-### 👩‍💻 Team HashRate
+### Team HashRate
 
 - Julia Hernández Palma
 - Julieta González Vargas
@@ -110,7 +110,7 @@ We validated the idea with a foundation that works with families, with relatives
 - Paola Gambero Díaz
 - Rubén Granados Mayorgas
 
-### 🙏 Credits
+### Credits
 
 - Pictograms: [ARASAAC](https://arasaac.org) (Government of Aragón, CC BY-NC-SA).
 - Map data: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
@@ -120,13 +120,13 @@ We validated the idea with a foundation that works with families, with relatives
 
 ## Español
 
-### 💡 El problema
+### El problema
 
 Muchos niños y niñas con autismo, síndrome de Angelman u otras condiciones no hablan, pero se comunican todo el rato: con un gesto, un sonido o una forma de moverse. Su familia les entiende. Una profe nueva, una sustituta, el monitor del campamento o la ambulancia, normalmente no.
 
 Hoy las familias lo resuelven con un **pasaporte comunicativo de papel**: tarjetas plastificadas que explican qué significa cada gesto y cómo responder. Ayuda, pero se pierde, se queda en casa y no cambia cuando el niño cambia.
 
-### 🌻 Nuestra solución
+### Nuestra solución
 
 **Aúna** convierte ese pasaporte en algo vivo:
 
@@ -137,7 +137,7 @@ Hoy las familias lo resuelven con un **pasaporte comunicativo de papel**: tarjet
 - **Una tarjeta para emergencias.** Un QR en una tarjeta de cartera. Quien lo escanea ve lo imprescindible, puede llamar a la familia y enviar su ubicación. Sin instalar nada.
 - **Pensada para usarse de verdad.** Pictogramas de ARASAAC, dictado por voz en español, letra grande y un estilo visual tranquilo.
 
-### 🧩 Qué hay en este repositorio
+### Qué hay en este repositorio
 
 | Carpeta | Qué es |
 | --- | --- |
@@ -149,7 +149,7 @@ Hoy las familias lo resuelven con un **pasaporte comunicativo de papel**: tarjet
 | [`marca/`](marca) | Kit de marca: logotipos, iconos de app, tarjetas QR, paleta de colores y tipografía. |
 | [`docs/`](docs) | Guía de puesta en marcha y notas de desarrollo. |
 
-### 🏗️ Cómo funciona
+### Cómo funciona
 
 - **App Android:** Kotlin, Jetpack Compose, Material 3, reconocimiento de voz y lectura en voz alta de Android, ZXing para los QR. Habla con Firebase por su API REST, así el APK pesa unos 3 MB.
 - **Web:** Preact y htm sin paso de compilación, Firebase JS SDK y pictogramas de ARASAAC. Publicada en GitHub Pages.
@@ -158,7 +158,7 @@ Hoy las familias lo resuelven con un **pasaporte comunicativo de papel**: tarjet
 
 El diagrama de arriba, en la parte en inglés, muestra cómo se conectan las piezas.
 
-### 🚀 Pruébalo
+### Pruébalo
 
 - **Web:** abre https://paolagdiazz.github.io/auna/app/ y entra con la cuenta de prueba de profe `prueba.profe@auna.test` (contraseña `prueba`).
 - **App Android:** descarga el APK en [Releases](https://github.com/paolagdiazz/auna/releases/latest) e instálalo. El móvil puede pedirte permitir apps de origen desconocido. La cuenta de prueba de familia es `prueba.familia@auna.test` (contraseña `prueba`).
@@ -166,7 +166,7 @@ El diagrama de arriba, en la parte en inglés, muestra cómo se conectan las pie
 
 Todos los datos de niños de la demo son inventados. Marco y Lucas son perfiles de ejemplo.
 
-### 🛠️ Ejecutarlo tú
+### Ejecutarlo tú
 
 ```bash
 git clone https://github.com/paolagdiazz/auna.git
@@ -176,13 +176,13 @@ cd auna/app-padres
 
 La web no necesita compilarse: sirve la carpeta `web/` con cualquier servidor estático (por ejemplo `python3 -m http.server -d web`). Para conectar tu propio proyecto de Firebase, tu Worker de Cloudflare y tu clave de Groq, sigue [docs/PUESTA-EN-MARCHA.md](docs/PUESTA-EN-MARCHA.md).
 
-### 🏆 El hackathon
+### El hackathon
 
 Aúna se diseñó y se construyó en **16 horas** en el **Hackathon IA First** (noviembre de 2026), en el **reto social**, por el equipo **HashRate**.
 
 Validamos la idea con una fundación que trabaja con familias, con familiares, y con colegios privados y ayuntamientos. Además montamos todo en planes gratuitos para que el proyecto pueda seguir funcionando después del evento.
 
-### 👩‍💻 Equipo HashRate
+### Equipo HashRate
 
 - Julia Hernández Palma
 - Julieta González Vargas
@@ -190,7 +190,7 @@ Validamos la idea con una fundación que trabaja con familias, con familiares, y
 - Paola Gambero Díaz
 - Rubén Granados Mayorgas
 
-### 🙏 Créditos
+### Créditos
 
 - Pictogramas: [ARASAAC](https://arasaac.org) (Gobierno de Aragón, CC BY-NC-SA).
 - Datos del mapa: © colaboradores de [OpenStreetMap](https://www.openstreetmap.org/copyright).
