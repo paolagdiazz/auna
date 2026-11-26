@@ -1,6 +1,8 @@
 # Puesta en marcha (todo gratis)
 
-Aúna usa tres servicios gratuitos. Hay que configurarlos una vez.
+*English version: [SETUP.md](SETUP.md)*
+
+Guía para montar tu propia copia de Aúna. Usa servicios gratuitos y solo hay que configurarlos una vez.
 
 | Servicio | Para qué | Plan |
 | --- | --- | --- |
@@ -13,7 +15,7 @@ Aúna usa tres servicios gratuitos. Hay que configurarlos una vez.
 
 1. https://console.firebase.google.com → **Crear proyecto** (`auna`, sin Google Analytics).
 2. **Authentication › Comenzar › Método de inicio de sesión**: activa **Correo electrónico/contraseña** y **Google**.
-3. **Authentication › Configuración › Dominios autorizados**: añade `paolagdiazz.github.io`.
+3. **Authentication › Configuración › Dominios autorizados**: añade `<tu-usuario>.github.io`.
 4. **Firestore Database › Crear base de datos**: ubicación `eur3`, modo producción.
 5. **Firestore › Reglas**: borra lo que hay, pega el contenido de [`firebase/firestore.rules`](../firebase/firestore.rules) y pulsa **Publicar**.
 6. **Copiar la configuración de la web** (`firebaseConfig`):
@@ -25,7 +27,8 @@ Aúna usa tres servicios gratuitos. Hay que configurarlos una vez.
    5. Aparece **Añadir el SDK de Firebase** con dos opciones (npm / `<script>`). Da igual cuál: en las dos sale un bloque que empieza por
       `const firebaseConfig = {` y termina en `};`, con 6 o 7 líneas (`apiKey`, `authDomain`, `projectId`, `storageBucket`,
       `messagingSenderId`, `appId` y quizá `measurementId`).
-   6. Selecciona desde `const firebaseConfig = {` hasta `};` (incluidos), cópialo y **pégamelo en el chat**. Yo lo pongo en la web y en la app.
+   6. Copia esos valores en [`web/app/config.js`](../web/app/config.js) (`firebaseConfig`) y en
+      [`CloudConfig.kt`](../app-padres/app/src/main/java/com/auna/padres/cloud/CloudConfig.kt) (`API_KEY` y `PROJECT_ID`).
       No es secreto: toda web hecha con Firebase lo lleva dentro.
    7. Pulsa **Ir a la consola**. Si ya habías registrado la app: en **Tus apps** pulsa **Aúna web** y, en **Configuración del SDK y de la app**,
       elige **Configuración** (o **Config**): ahí está el mismo bloque.
@@ -34,7 +37,7 @@ Aúna usa tres servicios gratuitos. Hay que configurarlos una vez.
 
 **A. Crear la cuenta**
 1. Abre https://dash.cloudflare.com/sign-up, escribe tu correo y una contraseña y pulsa **Sign up**.
-2. Confirma el correo que te envían (enlace **Verify email**). Si te pregunta qué quieres hacer o te ofrece añadir un dominio, sáltalo: no hace falta dominio.
+2. Confirma el correo que te envían (enlace **Verify email**). Si te ofrece añadir un dominio, sáltalo: no hace falta.
 
 **B. Crear el Worker**
 1. En el menú de la izquierda, abre **Compute (Workers)** › **Workers & Pages** (en algunas cuentas se llama solo **Workers & Pages**).
@@ -59,19 +62,21 @@ Aúna usa tres servicios gratuitos. Hay que configurarlos una vez.
 
 **D. Copiar la dirección del Worker**
 1. En la pestaña **Settings** › **Domains & Routes** (o en la tarjeta de arriba de **Overview**) verás una dirección que termina en
-   `.workers.dev`, por ejemplo `https://auna-ia.paola.workers.dev`.
-2. **Pégamela en el chat**. Yo la pongo en la web y en la app.
+   `.workers.dev`, por ejemplo `https://auna-ia.tu-nombre.workers.dev`.
+2. Ponla como `AI_URL` en [`web/app/config.js`](../web/app/config.js) y en
+   [`CloudConfig.kt`](../app-padres/app/src/main/java/com/auna/padres/cloud/CloudConfig.kt).
 3. Comprobación opcional: ábrela en el navegador. Si dice `{"error":"Solo POST."}`, el puente funciona.
 
 ## 3. GitHub Pages (publicar la web)
 
-1. Abre https://github.com/paolagdiazz/auna e inicia sesión.
+1. Abre tu copia (fork) del repositorio en GitHub e inicia sesión.
 2. Arriba, en la barra de pestañas del repositorio, pulsa **⚙ Settings** (la última; si no la ves, está en el menú **···**).
 3. En el menú de la izquierda, sección **Code and automation**, pulsa **Pages**.
 4. En **Build and deployment › Source** cambia **Deploy from a branch** por **GitHub Actions**. No hace falta pulsar nada más: se guarda solo.
 5. Abre la pestaña **Actions** del repositorio. Si sale el flujo **Publicar la web** en rojo (falló porque Pages aún no estaba activado),
-   ábrelo y pulsa **Re-run all jobs**. Si no sale ninguno, avísame y lo lanzo yo con un cambio.
-6. Cuando salga en verde (1 o 2 minutos), la web estará en https://paolagdiazz.github.io/auna/
+   ábrelo y pulsa **Re-run all jobs**. Si no sale ninguno, haz cualquier cambio en `web/` y súbelo.
+6. Cuando salga en verde (1 o 2 minutos), la web estará en `https://<tu-usuario>.github.io/<repositorio>/`.
+   Pon esa dirección + `app/` como `WEB_URL` en `CloudConfig.kt` y añade `<tu-usuario>.github.io` a los dominios autorizados de Firebase.
 
 ## Cómo se usa
 

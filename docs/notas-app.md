@@ -1,3 +1,6 @@
+> Notas internas del equipo durante el hackathon: la revisión pantalla a pantalla de la app de padres y qué se arregló en cada versión.
+> *Internal team notes from the hackathon: a screen by screen review of the parents app and what was fixed in each version.*
+
 # App de padres · lo que no funcionaba (v0.1) y su estado en v0.2
 
 Revisión pantalla a pantalla. `[x]` = arreglado y comprobado en el emulador.
